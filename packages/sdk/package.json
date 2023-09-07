@@ -1,0 +1,29 @@
+{
+  "name": "@jup-ag/referral-sdk",
+  "version": "0.1.5",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "source": "./src/index.ts",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/lodash": "^4.14.197",
+    "tsup": "^7.2.0",
+    "typescript": "5.1.6"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "0.28.1-beta.2",
+    "@solana/spl-token": "0.3.8",
+    "@solana/web3.js": "^1.77.3",
+    "lodash": "^4.17.21"
+  }
+}

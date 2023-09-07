@@ -1,0 +1,127 @@
+openapi: "3.0.0"
+info:
+  title: "Referral API"
+  version: "1.0.0"
+  description: "API to interact with your referral account"
+
+servers:
+  - url: "https://referral.jup.ag"
+
+paths:
+  /api/referral/{referralPubkey}/token-accounts:
+    get:
+      summary: "Retrieve token accounts for the referral account"
+      description: "Returns an array of token accounts associated with the referral account."
+      parameters:
+        - $ref: "#/components/parameters/ReferralPubkey"
+      responses:
+        200:
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TokenAccount"
+
+  /api/referral/{referralPubkey}/token-accounts/create:
+    post:
+      summary: "Create a new token account for the referral account"
+      description: "Creates a new token account for a referral account."
+      parameters:
+        - $ref: "#/components/parameters/ReferralPubkey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionRequestBody"
+      responses:
+        200:
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+
+  /api/referral/{referralPubkey}/token-accounts/claim:
+    post:
+      summary: "Claim a token account for a specific referral"
+      description: "Claims a token account for a referral account."
+      parameters:
+        - $ref: "#/components/parameters/ReferralPubkey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionRequestBody"
+      responses:
+        200:
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+  /api/referral/{referralPubkey}/claim-all:
+    post:
+      summary: "Claim all token account for a specific referral"
+      description: "Claims all token account for a referral account."
+      parameters:
+        - $ref: "#/components/parameters/ReferralPubkey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimAllRequestBody"
+      responses:
+        200:
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaimAllResponse"
+
+components:
+  parameters:
+    ReferralPubkey:
+      name: referralPubkey
+      in: path
+      description: "Public key of the referral. Get it from your dashboard"
+      required: true
+      schema:
+        type: "string"
+
+  schemas:
+    TokenAccount:
+      type: object
+      properties:
+        pubkey:
+          type: string
+        mint:
+          type: string
+    TransactionRequestBody:
+      type: object
+      properties:
+        mint:
+          type: string
+        feePayer:
+          type: string
+    TransactionResponse:
+      type: object
+      properties:
+        tx:
+          type: string
+    ClaimAllRequestBody:
+      type: object
+      properties:
+        feePayer:
+          type: string
+    ClaimAllResponse:
+      type: object
+      properties:
+        txs:
+          type: array
+          items:
+            type: string

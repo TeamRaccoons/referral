@@ -1,0 +1,46 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "globalDependencies": ["**/.env"],
+  "pipeline": {
+    "dev": {
+      "persistent": true,
+      "cache": false
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "dist/**"]
+    },
+    "lint": {
+      "dependsOn": ["build"]
+    },
+    "lint:fix": {},
+    "clean": {
+      "cache": false
+    },
+    "//#clean": {
+      "cache": false
+    },
+    "type-check": {
+      "dependsOn": ["build"],
+      "cache": false
+    }
+  },
+  "globalEnv": [
+    "CI",
+    "CLERK_SECRET_KEY",
+    "DATABASE_URL",
+    "EXPO_ROUTER_APP_ROOT",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+    "NEXTJS_URL",
+    "NODE_ENV",
+    "SKIP_ENV_VALIDATION",
+    "STRIPE_API_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "NEXT_PUBLIC_STRIPE_STD_PRODUCT_ID",
+    "NEXT_PUBLIC_STRIPE_STD_MONTHLY_PRICE_ID",
+    "NEXT_PUBLIC_STRIPE_PRO_PRODUCT_ID",
+    "NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID",
+    "VERCEL",
+    "VERCEL_URL"
+  ]
+}

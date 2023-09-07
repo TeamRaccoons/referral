@@ -1,0 +1,27 @@
+{
+  "name": "monorepo",
+  "private": true,
+  "engines": {
+    "node": ">=v18.16.1"
+  },
+  "packageManager": "pnpm@8.6.6",
+  "scripts": {
+    "build": "turbo build",
+    "clean": "git clean -xdf node_modules dist .next",
+    "clean:workspaces": "turbo clean",
+    "dev": "FORCE_COLOR=1 turbo dev --parallel",
+    "format": "prettier --write \"**/*.{js,cjs,mjs,ts,tsx,md,json}\" --ignore-path .gitignore",
+    "lint": "turbo lint && manypkg check",
+    "lint:fix": "turbo lint:fix && manypkg fix",
+    "type-check": "turbo type-check"
+  },
+  "dependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^4.1.0",
+    "@manypkg/cli": "^0.21.0",
+    "@types/prettier": "^2.7.3",
+    "prettier": "^2.8.8",
+    "prettier-plugin-tailwindcss": "^0.4.1",
+    "turbo": "^1.10.12",
+    "typescript": "^5.1.6"
+  }
+}

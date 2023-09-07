@@ -1,0 +1,23 @@
+[features]
+seeds = false
+[programs.localnet]
+referral = "9vhgK3i91cTwTHQag85zoA3PmJUTfgvgYFc9AJPRNhGn"
+[programs.devnet]
+referral = "9vhgK3i91cTwTHQag85zoA3PmJUTfgvgYFc9AJPRNhGn"
+[programs.mainnet]
+referral = "REFER4ZgmyYx9c6He5XfaTMiGfdLwRnkV4RPp9t9iF3"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+build-devnet = "anchor build -- --features devnet"
+deploy-devnet = "solana program deploy target/deploy/referral.so --program-id target/deploy/referral-keypair.json"
+build-mainnet = "anchor build -- --features mainnet"
+deploy-mainnet = "solana program write-buffer target/deploy/referral.so"
+copy-idl = "cp target/types/referral.ts ../packages/sdk/src/idl.ts"

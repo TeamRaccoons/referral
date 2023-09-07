@@ -1,0 +1,24 @@
+POST http://localhost:3000/api/referral/HEE93TQS91TabtHN8TcnprFmzKHMGLgNuM5ugbVHfu1V/token-accounts/create
+Content-Type: application/json
+
+{
+  "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "feePayer": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+}
+
+###
+POST http://localhost:3000/api/referral/HEE93TQS91TabtHN8TcnprFmzKHMGLgNuM5ugbVHfu1V/token-accounts/claim
+Content-Type: application/json
+
+{
+  "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "feePayer": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+}
+
+###
+POST http://localhost:3000/api/referral/7KzbJD7nXVS4wX3BMu6HeiaaQxqGej3ZcKojmwYWjZnE/claim-all
+Content-Type: application/json
+
+{
+  "feePayer": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+}
