@@ -23,25 +23,13 @@ pub const AUTHORITY_SEED: &[u8] = b"authority";
 pub mod referral {
     use super::*;
 
+    // Project account instructions.
+
     pub fn initialize_project(
         ctx: Context<InitializeProject>,
         params: InitializeProjectParams,
     ) -> Result<()> {
         instructions::initialize_project(ctx, params)
-    }
-
-    pub fn initialize_referral_account(
-        ctx: Context<InitializeReferralAccount>,
-        params: InitializeReferralAccountParams,
-    ) -> Result<()> {
-        instructions::initialize_referral_account(ctx, params)
-    }
-
-    pub fn initialize_referral_account_with_name(
-        ctx: Context<InitializeReferralAccountWithName>,
-        params: InitializeReferralAccountWithNameParams,
-    ) -> Result<()> {
-        instructions::initialize_referral_account_with_name(ctx, params)
     }
 
     pub fn update_project(ctx: Context<UpdateProject>, params: UpdateProjectParams) -> Result<()> {
@@ -62,6 +50,33 @@ pub mod referral {
         instructions::update_referral_account(ctx, params)
     }
 
+    pub fn withdraw_from_project(
+        ctx: Context<WithdrawFromProject>,
+        params: WithdrawFromProjectParams,
+    ) -> Result<()> {
+        instructions::withdraw_from_project(ctx, params)
+    }
+
+    pub fn create_admin_token_account(ctx: Context<CreateAdminTokenAccount>) -> Result<()> {
+        instructions::create_admin_token_account(ctx)
+    }
+
+    // Referral account instructions.
+
+    pub fn initialize_referral_account(
+        ctx: Context<InitializeReferralAccount>,
+        params: InitializeReferralAccountParams,
+    ) -> Result<()> {
+        instructions::initialize_referral_account(ctx, params)
+    }
+
+    pub fn initialize_referral_account_with_name(
+        ctx: Context<InitializeReferralAccountWithName>,
+        params: InitializeReferralAccountWithNameParams,
+    ) -> Result<()> {
+        instructions::initialize_referral_account_with_name(ctx, params)
+    }
+
     pub fn transfer_referral_account(
         ctx: Context<TransferReferralAccount>,
         params: TransferReferralAccountParams,
@@ -77,17 +92,6 @@ pub mod referral {
 
     pub fn claim(ctx: Context<Claim>) -> Result<()> {
         instructions::claim(ctx)
-    }
-
-    pub fn create_admin_token_account(ctx: Context<CreateAdminTokenAccount>) -> Result<()> {
-        instructions::create_admin_token_account(ctx)
-    }
-
-    pub fn withdraw_from_project(
-        ctx: Context<WithdrawFromProject>,
-        params: WithdrawFromProjectParams,
-    ) -> Result<()> {
-        instructions::withdraw_from_project(ctx, params)
     }
 }
 

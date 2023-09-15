@@ -2,9 +2,10 @@ use crate::{
     events::ClaimEvent, ProgramErrorCode, Project, ReferralAccount, PROJECT_SEED, REFERRAL_ATA_SEED,
 };
 use anchor_lang::prelude::*;
-use anchor_spl::{token_interface::{
-    transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked,
-}, associated_token::AssociatedToken};
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
+};
 
 const DENOMINATOR: u128 = 10_000;
 

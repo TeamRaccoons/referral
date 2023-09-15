@@ -4,6 +4,7 @@ use anchor_spl::associated_token;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token_interface::{Mint, TokenInterface};
 
+// A convenient method that uses the project authority's SOL to create an associated token account for the admin.
 pub fn create_admin_token_account(ctx: Context<CreateAdminTokenAccount>) -> Result<()> {
     let project = &ctx.accounts.project;
 
@@ -39,7 +40,7 @@ pub struct CreateAdminTokenAccount<'info> {
     )]
     project_authority: SystemAccount<'info>,
     admin: SystemAccount<'info>,
-    /// CHECK: This may not be initialized yet.
+    /// CHECK: ATA of the admin account
     #[account(mut)]
     project_admin_token_account: UncheckedAccount<'info>,
     mint: Box<InterfaceAccount<'info, Mint>>,
