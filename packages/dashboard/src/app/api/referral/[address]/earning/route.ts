@@ -23,9 +23,9 @@ export async function GET(
     ...tokenAccounts.tokenAccounts,
   ].map(({ pubkey }) => pubkey.toString());
 
-  const result = await prisma.transaction.aggregate({
+  const result = await prisma.dailyVolume.aggregate({
     where: {
-      tokenAccount: {
+      tokenAccountAddress: {
         in: addresses,
       },
     },
