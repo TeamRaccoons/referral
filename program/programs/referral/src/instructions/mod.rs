@@ -1,4 +1,5 @@
 pub mod claim;
+pub mod close_referral_token_account;
 pub mod create_admin_token_account;
 pub mod initialize_project;
 pub mod initialize_referral_account;
@@ -11,6 +12,7 @@ pub mod update_referral_account;
 pub mod withdraw_from_project;
 
 pub use claim::*;
+pub use close_referral_token_account::*;
 pub use create_admin_token_account::*;
 pub use initialize_project::*;
 pub use initialize_referral_account::*;
