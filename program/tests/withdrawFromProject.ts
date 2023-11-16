@@ -1,10 +1,11 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
+import { SystemProgram, Transaction } from "@solana/web3.js";
+import { BN } from "bn.js";
 import { assert, expect } from "chai";
+
 import { Referral } from "../target/types/referral";
 import { fundAccount } from "./helpers/helpers";
-import { BN } from "bn.js";
-import { SystemProgram, Transaction } from "@solana/web3.js";
 
 describe("withdraw from project", () => {
   const provider = anchor.AnchorProvider.env();
@@ -27,7 +28,7 @@ describe("withdraw from project", () => {
     const [projectProgramAddress] =
       anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("project"), base.publicKey.toBuffer()],
-        program.programId
+        program.programId,
       );
 
     projectPubkey = projectProgramAddress;
@@ -35,7 +36,7 @@ describe("withdraw from project", () => {
     const [projectAuthorityProgramAddress] =
       anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("project_authority"), base.publicKey.toBuffer()],
-        program.programId
+        program.programId,
       );
 
     projectAuthorityPubkey = projectAuthorityProgramAddress;
@@ -58,19 +59,19 @@ describe("withdraw from project", () => {
         fromPubkey: admin.payer.publicKey,
         toPubkey: projectAuthorityPubkey,
         lamports: depositAmount.toNumber(),
-      })
+      }),
     );
 
     await anchor.web3.sendAndConfirmTransaction(
       program.provider.connection,
       transaction,
-      [admin.payer]
+      [admin.payer],
     );
   });
 
   it("Is able to withdraw from project!", async () => {
     const preWithdrawAmount = await program.provider.connection.getBalance(
-      projectAuthorityPubkey
+      projectAuthorityPubkey,
     );
     const withdrawAmount = new BN(10000);
 
@@ -89,10 +90,10 @@ describe("withdraw from project", () => {
     }
 
     const postWithdrawAmount = await program.provider.connection.getBalance(
-      projectAuthorityPubkey
+      projectAuthorityPubkey,
     );
     expect(postWithdrawAmount).to.eql(
-      preWithdrawAmount - withdrawAmount.toNumber()
+      preWithdrawAmount - withdrawAmount.toNumber(),
     );
   });
 
@@ -111,7 +112,7 @@ describe("withdraw from project", () => {
       assert(false, "shold've failed but didn't");
     } catch (err) {
       expect(err.toString()).to.eql(
-        "Error: failed to send transaction: Transaction simulation failed: Transaction results in an account (1) without insufficient funds for rent"
+        "Error: failed to send transaction: Transaction simulation failed: Transaction results in an account (1) with insufficient funds for rent",
       );
     }
   });

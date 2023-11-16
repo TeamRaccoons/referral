@@ -6,7 +6,7 @@ use anchor_spl::token_interface::{
 use crate::{Project, ReferralAccount, PROJECT_SEED, REFERRAL_ATA_SEED};
 
 pub fn close_referral_token_account(ctx: Context<CloseReferralTokenAccount>) -> Result<()> {
-    let bump = *ctx.bumps.get("project").unwrap();
+    let bump = ctx.bumps.project;
     let signer_seeds: &[&[&[u8]]] = &[&[PROJECT_SEED, ctx.accounts.project.base.as_ref(), &[bump]]];
 
     close_account(CpiContext::new_with_signer(
