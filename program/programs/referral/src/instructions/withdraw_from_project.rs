@@ -7,7 +7,7 @@ pub fn withdraw_from_project(
     ctx: Context<WithdrawFromProject>,
     params: WithdrawFromProjectParams,
 ) -> Result<()> {
-    let bump = *ctx.bumps.get("project_authority").unwrap();
+    let bump = ctx.bumps.project_authority;
     let signer_seeds: &[&[&[u8]]] = &[&[
         PROJECT_AUTHORITY_SEED,
         ctx.accounts.project.base.as_ref(),

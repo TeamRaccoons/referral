@@ -24,7 +24,7 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
     let project_amount = token_account_balance.checked_sub(referral_amount).unwrap();
     let mint = &ctx.accounts.mint;
 
-    let bump = *ctx.bumps.get("project").unwrap();
+    let bump = ctx.bumps.project;
     let signer_seeds: &[&[&[u8]]] = &[&[PROJECT_SEED, accounts.project.base.as_ref(), &[bump]]];
 
     if referral_amount > 0 {

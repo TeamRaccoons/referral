@@ -5,7 +5,7 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.28.0",
-    "@solana/spl-token": "^0.3.6"
+    "@solana/spl-token": "^0.3.9"
   },
   "devDependencies": {
     "@coral-xyz/spl-token": "^0.28.0",

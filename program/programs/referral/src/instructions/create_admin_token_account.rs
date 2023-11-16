@@ -8,7 +8,7 @@ use anchor_spl::token_interface::{Mint, TokenInterface};
 pub fn create_admin_token_account(ctx: Context<CreateAdminTokenAccount>) -> Result<()> {
     let project = &ctx.accounts.project;
 
-    let bump = *ctx.bumps.get("project_authority").unwrap();
+    let bump = ctx.bumps.project_authority;
     let signer_seeds: &[&[&[u8]]] = &[&[PROJECT_AUTHORITY_SEED, project.base.as_ref(), &[bump]]];
 
     associated_token::create_idempotent(CpiContext::new_with_signer(

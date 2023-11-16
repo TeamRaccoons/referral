@@ -1,6 +1,15 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { SPL_TOKEN_PROGRAM_ID, splTokenProgram } from "@coral-xyz/spl-token";
+import {
+  createInitializeMetadataPointerInstruction,
+  createInitializeMintCloseAuthorityInstruction,
+  createInitializeMintInstruction,
+  createMint,
+  ExtensionType,
+  getMintLen,
+  TOKEN_2022_PROGRAM_ID,
+} from "@solana/spl-token";
 import { expect } from "chai";
 
 import { Referral } from "../target/types/referral";
@@ -46,7 +55,7 @@ describe("program", () => {
         beforeEach(async () => {
           base = anchor.web3.Keypair.generate();
           partner = anchor.web3.Keypair.generate();
-          fundAccount(partner.publicKey, provider);
+          await fundAccount(partner.publicKey, provider);
 
           const [projectProgramAddress] =
             anchor.web3.PublicKey.findProgramAddressSync(
@@ -80,7 +89,11 @@ describe("program", () => {
             .signers([partner, referralAccountKeypair])
             .rpc();
 
-          token = await createTokenMint(tokenProgram, provider);
+          if (name === "token") {
+            token = await createTokenMint(tokenProgram, provider);
+          } else {
+            token = await createTokenMintWithMetadataPointerExtension(provider);
+          }
 
           const [referralTokenAccountProgramAddress] =
             anchor.web3.PublicKey.findProgramAddressSync(
@@ -130,3 +143,40 @@ describe("program", () => {
     });
   });
 });
+
+const createTokenMintWithMetadataPointerExtension = async (
+  provider: anchor.AnchorProvider,
+) => {
+  const mintKeypair = new anchor.web3.Keypair();
+  const extensions = [ExtensionType.MetadataPointer];
+  const mintLen = getMintLen(extensions);
+  const lamports = await provider.connection.getMinimumBalanceForRentExemption(
+    mintLen,
+  );
+
+  const transaction = new anchor.web3.Transaction().add(
+    anchor.web3.SystemProgram.createAccount({
+      fromPubkey: provider.publicKey,
+      newAccountPubkey: mintKeypair.publicKey,
+      space: mintLen,
+      lamports,
+      programId: TOKEN_2022_PROGRAM_ID,
+    }),
+    createInitializeMetadataPointerInstruction(
+      mintKeypair.publicKey,
+      provider.publicKey,
+      anchor.web3.PublicKey.default,
+      TOKEN_2022_PROGRAM_ID,
+    ),
+    createInitializeMintInstruction(
+      mintKeypair.publicKey,
+      9,
+      provider.publicKey,
+      anchor.web3.PublicKey.default,
+      TOKEN_2022_PROGRAM_ID,
+    ),
+  );
+  await provider.sendAndConfirm(transaction, [mintKeypair]);
+
+  return mintKeypair.publicKey;
+};

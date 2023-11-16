@@ -18,9 +18,5 @@ devnet = []
 mainnet = []
 
 [dependencies]
-anchor-lang = { version = "0.28.0", features = ["init-if-needed", "event-cpi"] }
-anchor-spl = "0.28.0"
-# remove this after upgrade to solana 1.16
-# https://github.com/coral-xyz/anchor/pull/2527#issue-1749784936
-winnow = "=0.4.1"
-toml_datetime = "=0.6.1"
+anchor-lang = { version = "0.29.0", features = ["init-if-needed", "event-cpi"] }
+anchor-spl = "0.29.0"
