@@ -8,21 +8,21 @@ servers:
   - url: "https://referral.jup.ag"
 
 paths:
-  /api/referral/{referralPubkey}/token-accounts:
-    get:
-      summary: "Retrieve token accounts for the referral account"
-      description: "Returns an array of token accounts associated with the referral account."
-      parameters:
-        - $ref: "#/components/parameters/ReferralPubkey"
-      responses:
-        200:
-          description: "Successful operation"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/TokenAccount"
+  # /api/referral/{referralPubkey}/token-accounts:
+  #   get:
+  #     summary: "Retrieve token accounts for the referral account"
+  #     description: "Returns an array of token accounts associated with the referral account."
+  #     parameters:
+  #       - $ref: "#/components/parameters/ReferralPubkey"
+  #     responses:
+  #       200:
+  #         description: "Successful operation"
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: "#/components/schemas/TokenAccount"
 
   /api/referral/{referralPubkey}/token-accounts/create:
     post:
