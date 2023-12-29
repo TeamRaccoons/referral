@@ -9,8 +9,9 @@ export const useReferralTokens = (
   useQuery({
     queryKey: ["tokens", referralPubkey.toString()],
     queryFn: () => {
-      return referralProvider.getReferralTokenAccounts(
+      return referralProvider.getReferralTokenAccountsWithStrategy(
         referralPubkey.toString(),
+        { type: "token-list", tokenList: "all" },
       );
     },
   });

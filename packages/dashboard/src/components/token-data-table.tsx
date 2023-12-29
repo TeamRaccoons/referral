@@ -88,6 +88,43 @@ export const TokenDataTable: React.FC<
           },
         },
         {
+          id: "value",
+          accessorKey: "value",
+          sortDescFirst: false,
+          header: ({ column }) => {
+            return (
+              <div className="text-right">
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    if (column.getIsSorted() === "desc") {
+                      column.clearSorting();
+                    } else {
+                      column.toggleSorting(column.getIsSorted() === "asc");
+                    }
+                  }}
+                >
+                  Value
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            );
+          },
+          sortingFn: (a, b) => {
+            const aValue: Decimal = a.getValue("value");
+            const bValue: Decimal = b.getValue("value");
+
+            return aValue.cmp(bValue);
+          },
+          cell: (info) => {
+            const value = info.getValue<Decimal>();
+
+            return (
+              <div className="text-right font-medium">${value.toFixed(2)}</div>
+            );
+          },
+        },
+        {
           id: "price",
           accessorKey: "price",
           sortDescFirst: false,
@@ -116,8 +153,8 @@ export const TokenDataTable: React.FC<
 
             return aPrice.cmp(bPrice);
           },
-          cell: ({ row }) => {
-            const price: Decimal = row.getValue("price");
+          cell: (info) => {
+            const price = info.getValue<Decimal>();
 
             return (
               <div className="text-right font-medium">${price.toFixed(2)}</div>

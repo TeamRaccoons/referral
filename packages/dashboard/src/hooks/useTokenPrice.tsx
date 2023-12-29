@@ -110,7 +110,7 @@ export const useGetTokenPrices = (mints: string[]) => {
       ) as PriceAPIResult["data"] | undefined;
       return { ...acc, ...(prices || {}) };
     }, {} as PriceAPIResult["data"]);
-  }, [queryClient, mints, _]);
+  }, [queryClient, mints]);
 
   return pricesHash;
 };
