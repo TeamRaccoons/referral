@@ -18,6 +18,7 @@ import {
 } from "@solana/web3.js";
 import chunk from "lodash/chunk";
 
+import { chunkedGetMultipleAccountInfos } from "./chunks";
 import { PROGRAM_ID } from "./constant";
 import { IDL, Referral } from "./idl";
 import { getOrCreateATAInstruction } from "./utils";
@@ -211,6 +212,73 @@ export class ReferralProvider {
     );
 
     return { tokenAccounts, token2022Accounts };
+  }
+
+  public async getReferralTokenAccountsWithStrategy(
+    referralAccountAddress: string,
+    strategy:
+      | { type: "top-tokens"; topN: number }
+      | { type: "token-list"; tokenList: "all" | "strict" } = {
+      type: "top-tokens",
+      topN: 100,
+    },
+  ): Promise<{
+    tokenAccounts: RawAccountWithPubkey[];
+    token2022Accounts: RawAccountWithPubkey[];
+  }> {
+    const tokens = await (async () => {
+      if (strategy.type === "top-tokens") {
+        const topTokens = (
+          (await (
+            await fetch("https://cache.jup.ag/top-tokens")
+          ).json()) as string[]
+        ).slice(0, strategy.topN);
+        return topTokens;
+      } else if (strategy.type === "token-list") {
+        const tokens = (
+          await (
+            await fetch(`https://token.jup.ag/${strategy.tokenList}`)
+          ).json()
+        ).map(({ address }) => address) as string[];
+        return tokens;
+      } else {
+        throw new Error("Invalid strategy");
+      }
+    })();
+
+    const referralTokenAccounts = tokens.map((topToken) =>
+      this.getReferralTokenAccountPubKey({
+        referralAccountPubKey: new PublicKey(referralAccountAddress),
+        mint: new PublicKey(topToken),
+      }),
+    );
+
+    const tokenAccounts: RawAccountWithPubkey[] = [];
+    const token2022Accounts: RawAccountWithPubkey[] = [];
+    const accountInfos = await chunkedGetMultipleAccountInfos(
+      this.connection,
+      referralTokenAccounts,
+    );
+    for (const [index, accountInfo] of accountInfos.entries()) {
+      if (!accountInfo) continue;
+      const address = referralTokenAccounts[index];
+      const rawAccount = AccountLayout.decode(accountInfo.data);
+
+      const rawAccountWithPubkey = {
+        pubkey: address,
+        account: rawAccount,
+      };
+      if (accountInfo.owner.equals(TOKEN_PROGRAM_ID)) {
+        tokenAccounts.push(rawAccountWithPubkey);
+      } else if (accountInfo.owner.equals(TOKEN_2022_PROGRAM_ID)) {
+        token2022Accounts.push(rawAccountWithPubkey);
+      }
+    }
+
+    return {
+      tokenAccounts,
+      token2022Accounts,
+    };
   }
 
   public async initializeProject({

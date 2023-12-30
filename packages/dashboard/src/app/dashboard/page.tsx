@@ -259,13 +259,15 @@ const TokenTable: React.FC<
           return;
         }
 
-        let amount = new Decimal(account.amount.toString()).div(
+        const amount = new Decimal(account.amount.toString()).div(
           10 ** tokenInfo.decimals,
         );
+        const price = new Decimal(pricesHash[mint]?.price || 0);
         return {
           tokenName: `${tokenInfo.name} (${tokenInfo.symbol})`,
           mint,
-          price: new Decimal(pricesHash[mint]?.price || 0).mul(amount),
+          price,
+          value: amount.mul(price),
           address: pubkey.toBase58(),
           amount: amount,
         };
@@ -305,7 +307,8 @@ const TokenTable: React.FC<
           </CardTitle>
           <CardDescription className="flex">
             Token accounts must be created to collect fees in their
-            corresponding tokens.
+            corresponding tokens. Only Jupiter tokens in the Jupiter all list
+            are displayed, to harvest unknown tokens use the SDK
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 rounded-b-lg py-4 dark:bg-[#101828]">
