@@ -536,7 +536,7 @@ export class ReferralProvider {
         const tokenProgramId =
           idx === 0 ? TOKEN_PROGRAM_ID : TOKEN_2022_PROGRAM_ID;
         const tokensWithAmount = accounts.filter(
-          (item) => item.account.amount > 0,
+          (item) => item.account.amount > 0 && item.account.state === 1,
         );
 
         // get all token accounts belong to partner and admin
