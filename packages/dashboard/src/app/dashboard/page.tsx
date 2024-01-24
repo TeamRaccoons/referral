@@ -50,7 +50,9 @@ import { JUPITER_PROJECT } from "@/lib/constants";
 import { getReferralAccounts } from "@/lib/referral";
 import { nonNullable } from "@/lib/utils";
 
-const claimWorker = new Worker(new URL("./claim.worker.ts", import.meta.url));
+const claimWorker = new window.Worker(
+  new URL("./claim.worker.ts", import.meta.url),
+);
 
 interface IDashboardProps {
   params: { referral: string };
@@ -398,6 +400,7 @@ const DashboardHeader: React.FC<{
     referralProvider,
     sendAllTransactions,
     queryClient,
+    connection.rpcEndpoint,
   ]);
 
   return (
