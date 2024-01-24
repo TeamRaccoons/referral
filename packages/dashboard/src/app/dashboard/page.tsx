@@ -50,10 +50,6 @@ import { JUPITER_PROJECT } from "@/lib/constants";
 import { getReferralAccounts } from "@/lib/referral";
 import { nonNullable } from "@/lib/utils";
 
-const claimWorker = new window.Worker(
-  new URL("./claim.worker.ts", import.meta.url),
-);
-
 interface IDashboardProps {
   params: { referral: string };
   searchParams: { [key: string]: string | string[] | undefined };
@@ -336,6 +332,11 @@ const DashboardHeader: React.FC<{
   referralPubkey: PublicKey;
   referralAccount: ReferralAccount;
 }> = ({ referralProvider, referralPubkey, referralAccount }) => {
+  const claimWorker = React.useMemo(
+    () => new window.Worker(new URL("./claim.worker.ts", import.meta.url)),
+    [],
+  );
+
   const wallet = useWallet();
   const queryClient = useQueryClient();
   const referralKey = React.useMemo(() => {
