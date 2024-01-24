@@ -333,7 +333,7 @@ const DashboardHeader: React.FC<{
   referralAccount: ReferralAccount;
 }> = ({ referralProvider, referralPubkey, referralAccount }) => {
   const claimWorker = React.useMemo(
-    () => new window.Worker(new URL("./claim.worker.ts", import.meta.url)),
+    () => new window.Worker(new URL("./claim.worker", import.meta.url)),
     [],
   );
 
