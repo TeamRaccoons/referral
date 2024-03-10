@@ -2,10 +2,9 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { SPL_TOKEN_PROGRAM_ID, splTokenProgram } from "@coral-xyz/spl-token";
 import {
+  createInitializeGroupPointerInstruction,
   createInitializeMetadataPointerInstruction,
-  createInitializeMintCloseAuthorityInstruction,
   createInitializeMintInstruction,
-  createMint,
   ExtensionType,
   getMintLen,
   TOKEN_2022_PROGRAM_ID,
@@ -26,18 +25,16 @@ describe("program", () => {
   const program = anchor.workspace.Referral as Program<Referral>;
   const admin = anchor.workspace.Referral.provider.wallet;
 
-  const TEST_PROGRAM_IDS = [
-    SPL_TOKEN_PROGRAM_ID,
-    new anchor.web3.PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"),
-  ];
-  const TOKEN_PROGRAMS = TEST_PROGRAM_IDS.map((programId) =>
-    splTokenProgram({
-      provider,
-      programId,
-    }),
-  );
+  const TOKEN_PROGRAM = splTokenProgram({
+    provider,
+    programId: SPL_TOKEN_PROGRAM_ID,
+  });
+  const TOKEN_2022_PROGRAM = splTokenProgram({
+    provider,
+    programId: TOKEN_2022_PROGRAM_ID,
+  });
 
-  TOKEN_PROGRAMS.forEach((tokenProgram) => {
+  [TOKEN_PROGRAM, TOKEN_2022_PROGRAM].forEach((tokenProgram) => {
     const name =
       tokenProgram.programId === SPL_TOKEN_PROGRAM_ID ? "token" : "token-2022";
 
@@ -92,7 +89,10 @@ describe("program", () => {
           if (name === "token") {
             token = await createTokenMint(tokenProgram, provider);
           } else {
-            token = await createTokenMintWithMetadataPointerExtension(provider);
+            token = await createTokenMintWithExtensions(provider, [
+              ExtensionType.MetadataPointer,
+              ExtensionType.GroupPointer,
+            ]);
           }
 
           const [referralTokenAccountProgramAddress] =
@@ -144,17 +144,42 @@ describe("program", () => {
   });
 });
 
-const createTokenMintWithMetadataPointerExtension = async (
+const createTokenMintWithExtensions = async (
   provider: anchor.AnchorProvider,
+  extensions: ExtensionType[],
 ) => {
   const mintKeypair = new anchor.web3.Keypair();
-  const extensions = [ExtensionType.MetadataPointer];
   const mintLen = getMintLen(extensions);
   const lamports = await provider.connection.getMinimumBalanceForRentExemption(
     mintLen,
   );
 
-  const transaction = new anchor.web3.Transaction().add(
+  const initExtensionsIxs: anchor.web3.TransactionInstruction[] = [];
+  for (const extension of extensions) {
+    if (extension === ExtensionType.MetadataPointer) {
+      initExtensionsIxs.push(
+        createInitializeMetadataPointerInstruction(
+          mintKeypair.publicKey,
+          provider.publicKey,
+          anchor.web3.PublicKey.default,
+          TOKEN_2022_PROGRAM_ID,
+        ),
+      );
+    } else if (extension === ExtensionType.GroupPointer) {
+      initExtensionsIxs.push(
+        createInitializeGroupPointerInstruction(
+          mintKeypair.publicKey,
+          provider.publicKey,
+          anchor.web3.PublicKey.default,
+          TOKEN_2022_PROGRAM_ID,
+        ),
+      );
+    } else {
+      throw new Error(`Extension ExtensionType is not supported: ${extension}`);
+    }
+  }
+
+  const ixs = [
     anchor.web3.SystemProgram.createAccount({
       fromPubkey: provider.publicKey,
       newAccountPubkey: mintKeypair.publicKey,
@@ -162,12 +187,9 @@ const createTokenMintWithMetadataPointerExtension = async (
       lamports,
       programId: TOKEN_2022_PROGRAM_ID,
     }),
-    createInitializeMetadataPointerInstruction(
-      mintKeypair.publicKey,
-      provider.publicKey,
-      anchor.web3.PublicKey.default,
-      TOKEN_2022_PROGRAM_ID,
-    ),
+  ];
+  ixs.push(...initExtensionsIxs);
+  ixs.push(
     createInitializeMintInstruction(
       mintKeypair.publicKey,
       9,
@@ -176,6 +198,8 @@ const createTokenMintWithMetadataPointerExtension = async (
       TOKEN_2022_PROGRAM_ID,
     ),
   );
+
+  const transaction = new anchor.web3.Transaction().add(...ixs);
   await provider.sendAndConfirm(transaction, [mintKeypair]);
 
   return mintKeypair.publicKey;
