@@ -145,20 +145,26 @@ export class ReferralProvider {
     return referralAccountPubKey;
   }
 
-  public getReferralTokenAccountPubKey({
+  private cacheReferralTokenAccountPubKey = {};
+
+  public async getReferralTokenAccountPubKey({
     referralAccountPubKey,
     mint,
   }: GetReferralTokenAccountPubkeyVariable) {
-    const [referralTokenAccountPubKey] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("referral_ata"),
-        referralAccountPubKey.toBuffer(),
-        mint.toBuffer(),
-      ],
-      this.program.programId,
-    );
+    const key = `${referralAccountPubKey}-${mint}-${this.program.programId}`;
+    if (!this.cacheReferralTokenAccountPubKey[key]) {
+      const [referralTokenAccountPubKey] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("referral_ata"),
+          referralAccountPubKey.toBuffer(),
+          mint.toBuffer(),
+        ],
+        this.program.programId,
+      );
+      this.cacheReferralTokenAccountPubKey[key] = referralTokenAccountPubKey;
+    }
 
-    return referralTokenAccountPubKey;
+    return this.cacheReferralTokenAccountPubKey[key];
   }
 
   public async getReferralTokenAccounts(
@@ -184,30 +190,40 @@ export class ReferralProvider {
         );
 
         // get unique mint and all token accounts
-        allTokenAccounts.value.map((tokenAccount) => {
-          const accountData = AccountLayout.decode(tokenAccount.account.data);
+        await Promise.all(
+          allTokenAccounts.value.map(async (tokenAccount) => {
+            const accountData = AccountLayout.decode(tokenAccount.account.data);
 
-          if (!mintSet.has(accountData.mint.toBase58())) {
-            const address = this.getReferralTokenAccountPubKey({
-              referralAccountPubKey: new PublicKey(referralAccountAddress),
-              mint: accountData.mint,
-            });
-            mintSet.add(accountData.mint.toBase58());
-            possibleTokenAccountSet.add(address.toBase58());
-          }
+            if (!mintSet.has(accountData.mint.toBase58())) {
+              const address = await this.getReferralTokenAccountPubKey({
+                referralAccountPubKey: new PublicKey(referralAccountAddress),
+                mint: accountData.mint,
+              });
+              mintSet.add(accountData.mint.toBase58());
+              possibleTokenAccountSet.add(address.toBase58());
+            }
 
-          tokenAccountMap.set(tokenAccount.pubkey.toBase58(), accountData);
-        });
+            tokenAccountMap.set(tokenAccount.pubkey.toBase58(), accountData);
+          }),
+        );
 
         // loop through mint and find token account belong to referral account
-        return Array.from(possibleTokenAccountSet).reduce((acc, address) => {
-          const tokenAccount = tokenAccountMap.get(address);
-          if (tokenAccount) {
-            acc.push({ pubkey: new PublicKey(address), account: tokenAccount });
-          }
+        const result = Array.from(possibleTokenAccountSet).reduce(
+          (acc, address) => {
+            const tokenAccount = tokenAccountMap.get(address);
+            if (tokenAccount) {
+              acc.push({
+                pubkey: new PublicKey(address),
+                account: tokenAccount,
+              });
+            }
 
-          return acc;
-        }, [] as RawAccountWithPubkey[]);
+            return acc;
+          },
+          [] as RawAccountWithPubkey[],
+        );
+
+        return result;
       }),
     );
 
@@ -246,11 +262,13 @@ export class ReferralProvider {
       }
     })();
 
-    const referralTokenAccounts = tokens.map((topToken) =>
-      this.getReferralTokenAccountPubKey({
-        referralAccountPubKey: new PublicKey(referralAccountAddress),
-        mint: new PublicKey(topToken),
-      }),
+    const referralTokenAccounts = await Promise.all(
+      tokens.map((topToken) =>
+        this.getReferralTokenAccountPubKey({
+          referralAccountPubKey: new PublicKey(referralAccountAddress),
+          mint: new PublicKey(topToken),
+        }),
+      ),
     );
 
     const tokenAccounts: RawAccountWithPubkey[] = [];
@@ -402,10 +420,12 @@ export class ReferralProvider {
       referralAccountPubKey,
     );
 
-    const referralTokenAccountPubKey = this.getReferralTokenAccountPubKey({
-      referralAccountPubKey,
-      mint,
-    });
+    const referralTokenAccountPubKey = await this.getReferralTokenAccountPubKey(
+      {
+        referralAccountPubKey,
+        mint,
+      },
+    );
 
     const tx = await this.program.methods
       .initializeReferralTokenAccount()
@@ -449,7 +469,7 @@ export class ReferralProvider {
       [partnerTokenAccount, createPartnerTokenAccountIx],
       [projectAdminTokenAccount, createProjectAdminTokenAccountIx],
     ] = await Promise.all([
-      this.getReferralTokenAccountPubKey({
+      await this.getReferralTokenAccountPubKey({
         referralAccountPubKey,
         mint,
       }),
@@ -565,7 +585,7 @@ export class ReferralProvider {
                 item.account.data.parsed.info.mint,
             )?.pubkey;
             const referralTokenAccountPubKey =
-              this.getReferralTokenAccountPubKey({
+              await this.getReferralTokenAccountPubKey({
                 referralAccountPubKey,
                 mint: token.account.mint,
               });

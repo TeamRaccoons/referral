@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ReferralProvider, type ReferralAccount } from "@jup-ag/referral-sdk";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, VersionedTransaction } from "@solana/web3.js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Decimal } from "decimal.js";
 import { Dot } from "lucide-react";
@@ -34,7 +34,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Wallet } from "@/components/ui/icons";
+import { Spinner, Wallet } from "@/components/ui/icons";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WalletButton } from "@/components/wallet-button";
@@ -332,12 +332,19 @@ const DashboardHeader: React.FC<{
   referralPubkey: PublicKey;
   referralAccount: ReferralAccount;
 }> = ({ referralProvider, referralPubkey, referralAccount }) => {
+  const claimWorker = React.useMemo(
+    () => new window.Worker(new URL("./claim.worker", import.meta.url)),
+    [],
+  );
+
   const wallet = useWallet();
   const queryClient = useQueryClient();
   const referralKey = React.useMemo(() => {
     return referralPubkey.toString();
   }, [referralPubkey]);
+  const { connection } = useConnection();
   const sendAllTransactions = useSendAllTransactions();
+  const [isClaiming, setIsClaiming] = React.useState(false);
 
   const { isLoading: isFeeEarnedLoading, data: feeEarned } = useQuery({
     queryKey: ["fee-accumulated"],
@@ -373,22 +380,28 @@ const DashboardHeader: React.FC<{
 
   const claimAll = React.useCallback(async () => {
     if (!wallet.publicKey) return;
-
-    const txsCompiled = await referralProvider.claimAll({
-      payerPubKey: wallet.publicKey,
-      referralAccountPubKey: referralPubkey,
+    setIsClaiming(true);
+    claimWorker.postMessage({
+      rpc: connection.rpcEndpoint,
+      payerPubKey: wallet.publicKey.toBase58(),
+      referralAccountPubKey: referralPubkey.toBase58(),
     });
 
-    await sendAllTransactions(txsCompiled);
-    queryClient.refetchQueries({
-      queryKey: ["tokens"],
-    });
+    claimWorker.onmessage = async (ev) => {
+      const txsCompiled = ev.data.map(VersionedTransaction.deserialize);
+      setIsClaiming(false);
+      await sendAllTransactions(txsCompiled);
+      queryClient.refetchQueries({
+        queryKey: ["tokens"],
+      });
+    };
   }, [
     referralPubkey,
     wallet,
     referralProvider,
     sendAllTransactions,
     queryClient,
+    connection.rpcEndpoint,
   ]);
 
   return (
@@ -404,11 +417,11 @@ const DashboardHeader: React.FC<{
               </p>
               {isFeeEarnedLoading ? (
                 <Skeleton className="h-8 w-20" />
-              ) : (
+              ) : feeEarned?.totalUsdEarning ? (
                 <div className="text-3xl font-bold">
-                  ${feeEarned?.totalUsdEarning.toFixed(2)}
+                  ${feeEarned.totalUsdEarning.toFixed(2)}
                 </div>
-              )}
+              ) : null}
             </div>
             <div className="mt-2">
               <div className="flex items-center justify-between text-sm dark:text-[#E8F9FF]/50">
@@ -439,8 +452,19 @@ const DashboardHeader: React.FC<{
               )}
             </div>
             <div className="mt-4 flex justify-end">
-              <Button onClick={claimAll} disabled={totalUnclaimed === 0}>
-                Claim All
+              <Button
+                className="align-middle"
+                onClick={claimAll}
+                disabled={totalUnclaimed === 0 || isClaiming}
+              >
+                {isClaiming ? (
+                  <>
+                    Claiming&nbsp;
+                    <Spinner className="animate-spin" size={16} />
+                  </>
+                ) : (
+                  "Claim All"
+                )}
               </Button>
             </div>
           </CardContent>
