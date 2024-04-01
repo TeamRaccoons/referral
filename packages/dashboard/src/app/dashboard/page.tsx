@@ -307,8 +307,8 @@ const TokenTable: React.FC<
           </CardTitle>
           <CardDescription className="flex">
             Token accounts must be created to collect fees in their
-            corresponding tokens. Only Jupiter tokens in the Jupiter all list
-            are displayed, to harvest unknown tokens use the SDK
+            corresponding tokens. Only tokens in the Jupiter strict list are
+            displayed, to harvest unknown tokens use the SDK
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 rounded-b-lg py-4 dark:bg-[#101828]">

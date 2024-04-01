@@ -79,6 +79,7 @@ export interface ClaimVariable {
 export interface ClaimAllVariable {
   payerPubKey: PublicKey;
   referralAccountPubKey: PublicKey;
+  strategy?: GetReferralTokenAccountsStrategy;
 }
 
 export interface RawAccountWithPubkey {
@@ -89,6 +90,10 @@ export interface RawAccountWithPubkey {
 export const useReferral = (connection: Connection) => {
   return new ReferralProvider(connection);
 };
+
+export type GetReferralTokenAccountsStrategy =
+  | { type: "top-tokens"; topN: number }
+  | { type: "token-list"; tokenList: "all" | "strict" };
 
 export class ReferralProvider {
   private program: Program<Referral>;
@@ -207,7 +212,7 @@ export class ReferralProvider {
           }
 
           return acc;
-        }, [] as RawAccountWithPubkey[]);
+        }, new Array<RawAccountWithPubkey>());
       }),
     );
 
@@ -216,9 +221,7 @@ export class ReferralProvider {
 
   public async getReferralTokenAccountsWithStrategy(
     referralAccountAddress: string,
-    strategy:
-      | { type: "top-tokens"; topN: number }
-      | { type: "token-list"; tokenList: "all" | "strict" } = {
+    strategy: GetReferralTokenAccountsStrategy = {
       type: "top-tokens",
       topN: 100,
     },
@@ -512,6 +515,7 @@ export class ReferralProvider {
   public async claimAll({
     payerPubKey,
     referralAccountPubKey,
+    strategy,
   }: ClaimAllVariable): Promise<VersionedTransaction[]> {
     const blockhash = (await this.connection.getLatestBlockhash()).blockhash;
     const lookupTableAccount = await this.connection
@@ -528,8 +532,12 @@ export class ReferralProvider {
     );
     const projectAuthority = this.getProjectAuthorityPubKey(project);
 
-    const { tokenAccounts, token2022Accounts } =
-      await this.getReferralTokenAccounts(referralAccountPubKey.toString());
+    const { tokenAccounts, token2022Accounts } = strategy
+      ? await this.getReferralTokenAccountsWithStrategy(
+          referralAccountPubKey.toString(),
+          strategy,
+        )
+      : await this.getReferralTokenAccounts(referralAccountPubKey.toString());
 
     const vtTxs = await Promise.all(
       [tokenAccounts, token2022Accounts].map(async (accounts, idx) => {
@@ -547,23 +555,32 @@ export class ReferralProvider {
               programId: tokenProgramId,
             },
           );
+        const mintToPartnerTokenAccount = partnerTokenAccounts.value.reduce(
+          (acc, { pubkey, account }) => {
+            acc.set(account.data.parsed.info.mint, pubkey);
+            return acc;
+          },
+          new Map<string, PublicKey>(),
+        );
+
         const adminTokenAccounts =
           await this.connection.getParsedTokenAccountsByOwner(project.admin, {
             programId: tokenProgramId,
           });
+        const mintToAdminTokenAccount = adminTokenAccounts.value.reduce(
+          (acc, { pubkey, account }) => {
+            acc.set(account.data.parsed.info.mint, pubkey);
+            return acc;
+          },
+          new Map<string, PublicKey>(),
+        );
 
         const claimParams = await Promise.all(
           tokensWithAmount.map(async (token) => {
-            let partnerTokenAccount = partnerTokenAccounts.value.find(
-              (item) =>
-                token.account.mint.toBase58() ===
-                item.account.data.parsed.info.mint,
-            )?.pubkey;
-            let projectAdminTokenAccount = adminTokenAccounts.value.find(
-              (item) =>
-                token.account.mint.toBase58() ===
-                item.account.data.parsed.info.mint,
-            )?.pubkey;
+            const mintBase58 = token.account.mint.toBase58();
+            let partnerTokenAccount = mintToPartnerTokenAccount.get(mintBase58);
+            let projectAdminTokenAccount =
+              mintToAdminTokenAccount.get(mintBase58);
             const referralTokenAccountPubKey =
               this.getReferralTokenAccountPubKey({
                 referralAccountPubKey,
@@ -622,47 +639,49 @@ export class ReferralProvider {
           }),
         );
 
-        const batchParams = chunk(claimParams, 5);
-        return Promise.all(
-          batchParams.map(async (batch) => {
-            const txs = await Promise.all(
-              batch.map(
-                async ({
-                  preInstructions,
-                  mint,
-                  projectAdminTokenAccount,
-                  referralTokenAccountPubKey,
-                  partnerTokenAccount,
-                }) => {
-                  return await this.program.methods
-                    .claim()
-                    .accounts({
-                      payer: payerPubKey,
-                      project: referralAccount.project,
-                      admin: project.admin,
-                      projectAdminTokenAccount,
-                      referralAccount: referralAccountPubKey,
-                      referralTokenAccount: referralTokenAccountPubKey,
-                      partner: referralAccount.partner,
-                      partnerTokenAccount: partnerTokenAccount,
-                      mint,
-                      tokenProgram: tokenProgramId,
-                    })
-                    .preInstructions(preInstructions)
-                    .transaction();
-                },
-              ),
-            );
+        const txs: VersionedTransaction[] = [];
+        let instructions: TransactionInstruction[] = [];
+        let chunk = 0;
+        for (const {
+          referralTokenAccountPubKey,
+          projectAdminTokenAccount,
+          partnerTokenAccount,
+          mint,
+          preInstructions,
+        } of claimParams) {
+          const tx = await this.program.methods
+            .claim()
+            .accounts({
+              payer: payerPubKey,
+              project: referralAccount.project,
+              admin: project.admin,
+              projectAdminTokenAccount,
+              referralAccount: referralAccountPubKey,
+              referralTokenAccount: referralTokenAccountPubKey,
+              partner: referralAccount.partner,
+              partnerTokenAccount: partnerTokenAccount,
+              mint,
+              tokenProgram: tokenProgramId,
+            })
+            .preInstructions(preInstructions)
+            .transaction();
+          instructions.push(...tx.instructions);
 
+          chunk += 1;
+
+          if (chunk === 5) {
             const messageV0 = new TransactionMessage({
               payerKey: payerPubKey,
-              instructions: txs.flatMap((tx) => tx.instructions),
+              instructions,
               recentBlockhash: blockhash,
             }).compileToV0Message([lookupTableAccount]);
+            chunk = 0;
+            instructions = [];
 
-            return new VersionedTransaction(messageV0);
-          }),
-        );
+            txs.push(new VersionedTransaction(messageV0));
+          }
+        }
+        return txs;
       }),
     );
 

@@ -11,7 +11,7 @@ export const useReferralTokens = (
     queryFn: () => {
       return referralProvider.getReferralTokenAccountsWithStrategy(
         referralPubkey.toString(),
-        { type: "token-list", tokenList: "all" },
+        { type: "token-list", tokenList: "strict" },
       );
     },
   });
