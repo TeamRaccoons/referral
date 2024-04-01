@@ -54,7 +54,7 @@ export const TokenDataTable: React.FC<
   const [sorting, setSorting] = React.useState<SortingState>([
     {
       desc: true,
-      id: "price",
+      id: "value",
     },
   ]);
   const [rowSelection, setRowSelection] = React.useState({});
@@ -272,7 +272,7 @@ export const TokenDataTable: React.FC<
       },
       sorting: [
         {
-          id: "price",
+          id: "value",
           desc: true,
         },
       ],
