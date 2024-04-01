@@ -305,10 +305,17 @@ const TokenTable: React.FC<
               <Button>Create Token Accounts</Button>
             </Link>
           </CardTitle>
-          <CardDescription className="flex">
+          <CardDescription>
             Token accounts must be created to collect fees in their
             corresponding tokens. Only tokens in the Jupiter strict list are
-            displayed, to harvest unknown tokens use the SDK
+            displayed, to harvest unknown tokens use the SDK (
+            <a
+              href="https://github.com/TeamRaccoons/referral/tree/main/example"
+              target="_blank"
+            >
+              https://github.com/TeamRaccoons/referral/tree/main/example
+            </a>
+            )
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 rounded-b-lg py-4 dark:bg-[#101828]">
@@ -323,10 +330,6 @@ const TokenTable: React.FC<
   );
 };
 
-interface EarningResult {
-  totalUsdEarning: number;
-}
-
 const DashboardHeader: React.FC<{
   referralProvider: ReferralProvider;
   referralPubkey: PublicKey;
@@ -334,21 +337,8 @@ const DashboardHeader: React.FC<{
 }> = ({ referralProvider, referralPubkey, referralAccount }) => {
   const wallet = useWallet();
   const queryClient = useQueryClient();
-  const referralKey = React.useMemo(() => {
-    return referralPubkey.toString();
-  }, [referralPubkey]);
   const sendAllTransactions = useSendAllTransactions();
 
-  const { isLoading: isFeeEarnedLoading, data: feeEarned } = useQuery({
-    queryKey: ["fee-accumulated"],
-    queryFn: async () => {
-      const result: EarningResult = await (
-        await fetch(`/api/referral/${referralKey}/earning`)
-      ).json();
-
-      return result;
-    },
-  });
   const referralTokens = useReferralTokens(referralProvider, referralPubkey);
 
   const tokensWithAmount = React.useMemo(() => {
@@ -398,18 +388,6 @@ const DashboardHeader: React.FC<{
       <div className="my-2">
         <Card className="grid gap-2 md:grid-cols-2 lg:grid-cols-2">
           <CardContent className="border-b border-[#344054] p-8 md:border-b-0 md:border-r">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-[#98A2B3]">
-                Total Fee Accumulated
-              </p>
-              {isFeeEarnedLoading ? (
-                <Skeleton className="h-8 w-20" />
-              ) : (
-                <div className="text-3xl font-bold">
-                  ${feeEarned?.totalUsdEarning.toFixed(2)}
-                </div>
-              )}
-            </div>
             <div className="mt-2">
               <div className="flex items-center justify-between text-sm dark:text-[#E8F9FF]/50">
                 <span className="flex items-center gap-1">
