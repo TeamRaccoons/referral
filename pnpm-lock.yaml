@@ -41,9 +41,6 @@ importers:
       '@jup-ag/referral-sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@prisma/client':
-        specifier: ^5.1.1
-        version: 5.1.1(prisma@5.1.1)
       '@radix-ui/react-checkbox':
         specifier: ^1.0.4
         version: 1.0.4(@types/react-dom@18.2.7)(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
@@ -186,18 +183,12 @@ importers:
         specifier: ^3.22.1
         version: 3.22.1
     devDependencies:
-      '@prisma/extension-accelerate':
-        specifier: ^0.5.0
-        version: 0.5.0(@prisma/client@5.1.1)
       '@types/bs58':
         specifier: ^4.0.1
         version: 4.0.1
       '@types/swagger-ui-react':
         specifier: ^4.18.0
         version: 4.18.0
-      prisma:
-        specifier: ^5.1.1
-        version: 5.1.1
 
   packages/sdk:
     dependencies:
@@ -2535,35 +2526,6 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
-
-  /@prisma/client@5.1.1(prisma@5.1.1):
-    resolution: {integrity: sha512-fxcCeK5pMQGcgCqCrWsi+I2rpIbk0rAhdrN+ke7f34tIrgPwA68ensrpin+9+fZvuV2OtzHmuipwduSY6HswdA==}
-    engines: {node: '>=16.13'}
-    requiresBuild: true
-    peerDependencies:
-      prisma: '*'
-    peerDependenciesMeta:
-      prisma:
-        optional: true
-    dependencies:
-      '@prisma/engines-version': 5.1.1-1.6a3747c37ff169c90047725a05a6ef02e32ac97e
-      prisma: 5.1.1
-
-  /@prisma/engines-version@5.1.1-1.6a3747c37ff169c90047725a05a6ef02e32ac97e:
-    resolution: {integrity: sha512-owZqbY/wucbr65bXJ/ljrHPgQU5xXTSkmcE/JcbqE1kusuAXV/TLN3/exmz21SZ5rJ7WDkyk70J2G/n68iogbQ==}
-
-  /@prisma/engines@5.1.1:
-    resolution: {integrity: sha512-NV/4nVNWFZSJCCIA3HIFJbbDKO/NARc9ej0tX5S9k2EVbkrFJC4Xt9b0u4rNZWL4V+F5LAjvta8vzEUw0rw+HA==}
-    requiresBuild: true
-
-  /@prisma/extension-accelerate@0.5.0(@prisma/client@5.1.1):
-    resolution: {integrity: sha512-wH23i7S6yIvReepH5VBQfhmXizBI57KcLp4wvVY/rvDKsepg7mAqLYeK6IrufBFVyuEFudTNfYog/hnUO40wAg==}
-    engines: {node: '>=16'}
-    peerDependencies:
-      '@prisma/client': '>=4.16.1'
-    dependencies:
-      '@prisma/client': 5.1.1(prisma@5.1.1)
-    dev: true
 
   /@radix-ui/number@1.0.1:
     resolution: {integrity: sha512-T5gIdVO2mmPW3NNhjNgEP3cqMXjXL9UbO0BzWcXfvdBs+BohbQxvd/K5hSVKmn9/lbTdsQVKbUcP5WLCwvUbBg==}
@@ -8682,14 +8644,6 @@ packages:
       ansi-styles: 5.2.0
       react-is: 18.2.0
     dev: false
-
-  /prisma@5.1.1:
-    resolution: {integrity: sha512-WJFG/U7sMmcc6TjJTTifTfpI6Wjoh55xl4AzopVwAdyK68L9/ogNo8QQ2cxuUjJf/Wa82z/uhyh3wMzvRIBphg==}
-    engines: {node: '>=16.13'}
-    hasBin: true
-    requiresBuild: true
-    dependencies:
-      '@prisma/engines': 5.1.1
 
   /prismjs@1.27.0:
     resolution: {integrity: sha512-t13BGPUlFDR7wRB5kQDG4jjl7XeuH6jbJGt11JHPL96qwsEHNX2+68tFXqc1/k+/jALsbSWJKUOT/hcYAZ5LkA==}

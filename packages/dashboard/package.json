@@ -3,17 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm run prisma:generate && next dev",
-    "build": "pnpm run prisma:generate && next build",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "prisma:generate": "prisma generate --accelerate --schema=./src/prisma/schema.prisma"
+    "lint": "next lint"
   },
   "dependencies": {
     "@coral-xyz/anchor": "0.28.1-beta.2",
     "@hookform/resolvers": "^3.2.0",
     "@jup-ag/referral-sdk": "workspace:*",
-    "@prisma/client": "^5.1.1",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dropdown-menu": "^2.0.5",
     "@radix-ui/react-label": "^2.0.2",
@@ -63,9 +61,7 @@
     "zod": "^3.22.1"
   },
   "devDependencies": {
-    "@prisma/extension-accelerate": "^0.5.0",
     "@types/bs58": "^4.0.1",
-    "@types/swagger-ui-react": "^4.18.0",
-    "prisma": "^5.1.1"
+    "@types/swagger-ui-react": "^4.18.0"
   }
 }
