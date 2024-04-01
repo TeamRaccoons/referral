@@ -367,6 +367,7 @@ const DashboardHeader: React.FC<{
     const txsCompiled = await referralProvider.claimAll({
       payerPubKey: wallet.publicKey,
       referralAccountPubKey: referralPubkey,
+      strategy: { type: "token-list", tokenList: "strict" },
     });
 
     await sendAllTransactions(txsCompiled);
