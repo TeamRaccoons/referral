@@ -781,7 +781,7 @@ export class ReferralProvider {
             return {
               referralTokenAccountPubKey,
               projectAdminTokenAccount,
-              partnerTokenAccount: new PublicKey(mintBase58),
+              partnerTokenAccount: token.account.mint,
               preInstructions,
               mint: token.account.mint,
             };
@@ -818,7 +818,7 @@ export class ReferralProvider {
 
           chunk += 1;
 
-          if (chunk === 5) {
+          if (chunk === 7) {
             const messageV0 = new TransactionMessage({
               payerKey: payerPubKey,
               instructions,
@@ -826,7 +826,6 @@ export class ReferralProvider {
             }).compileToV0Message([lookupTableAccount]);
             chunk = 0;
             instructions = [];
-            // console.log(Buffer.from(txs.serialize()).toString("base64"));
             txs.push(new VersionedTransaction(messageV0));
           }
         }
