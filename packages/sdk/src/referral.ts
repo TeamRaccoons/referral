@@ -1,6 +1,7 @@
 import { AnchorProvider, IdlAccounts, Program } from "@coral-xyz/anchor";
 import {
   AccountLayout,
+  createAssociatedTokenAccountIdempotentInstruction,
   createAssociatedTokenAccountInstruction,
   getAssociatedTokenAddressSync,
   RawAccount,
@@ -729,42 +730,8 @@ export class ReferralProvider {
           return withdrawalableTokenAddress.includes(item.pubkey.toString());
         });
 
-        // get all token accounts belong to partner and admin
-        const partnerTokenAccounts =
-          await this.connection.getParsedTokenAccountsByOwner(
-            referralAccount.partner,
-            {
-              programId: tokenProgramId,
-            },
-          );
-        const mintToPartnerTokenAccount = partnerTokenAccounts.value.reduce(
-          (acc, { pubkey, account }) => {
-            acc.set(account.data.parsed.info.mint, pubkey);
-            return acc;
-          },
-          new Map<string, PublicKey>(),
-        );
-
-        const adminTokenAccounts =
-          await this.connection.getParsedTokenAccountsByOwner(project.admin, {
-            programId: tokenProgramId,
-          });
-
-        const mintToAdminTokenAccount = adminTokenAccounts.value.reduce(
-          (acc, { pubkey, account }) => {
-            acc.set(account.data.parsed.info.mint, pubkey);
-            return acc;
-          },
-          new Map<string, PublicKey>(),
-        );
-
         const claimParams = await Promise.all(
           tokensWithAmount.map(async (token) => {
-            const mintBase58 = token.account.mint.toBase58();
-            let partnerTokenAccount = mintToPartnerTokenAccount.get(mintBase58);
-            let projectAdminTokenAccount =
-              mintToAdminTokenAccount.get(mintBase58);
-
             const referralTokenAccountPubKey =
               this.getReferralTokenAccountPubKey({
                 referralAccountPubKey,
@@ -773,45 +740,41 @@ export class ReferralProvider {
 
             const preInstructions: TransactionInstruction[] = [];
 
-            if (!partnerTokenAccount) {
-              partnerTokenAccount = getAssociatedTokenAddressSync(
-                token.account.mint,
+            const partnerTokenAccount = getAssociatedTokenAddressSync(
+              token.account.mint,
+              referralAccount.partner,
+              true,
+              tokenProgramId,
+            );
+            preInstructions.push(
+              createAssociatedTokenAccountIdempotentInstruction(
+                payerPubKey,
+                partnerTokenAccount,
                 referralAccount.partner,
-                true,
-                tokenProgramId,
-              );
-              preInstructions.push(
-                createAssociatedTokenAccountInstruction(
-                  payerPubKey,
-                  partnerTokenAccount,
-                  referralAccount.partner,
-                  token.account.mint,
-                  tokenProgramId,
-                ),
-              );
-            }
-
-            if (!projectAdminTokenAccount) {
-              projectAdminTokenAccount = getAssociatedTokenAddressSync(
                 token.account.mint,
-                project.admin,
-                true,
                 tokenProgramId,
-              );
-              const ix = await this.program.methods
-                .createAdminTokenAccount()
-                .accounts({
-                  project: referralAccount.project,
-                  projectAuthority,
-                  admin: project.admin,
-                  projectAdminTokenAccount,
-                  mint: token.account.mint,
-                  tokenProgram: tokenProgramId,
-                })
-                .instruction();
+              ),
+            );
 
-              preInstructions.push(ix);
-            }
+            const projectAdminTokenAccount = getAssociatedTokenAddressSync(
+              token.account.mint,
+              project.admin,
+              true,
+              tokenProgramId,
+            );
+            const ix = await this.program.methods
+              .createAdminTokenAccount()
+              .accounts({
+                project: referralAccount.project,
+                projectAuthority,
+                admin: project.admin,
+                projectAdminTokenAccount,
+                mint: token.account.mint,
+                tokenProgram: tokenProgramId,
+              })
+              .instruction();
+
+            preInstructions.push(ix);
 
             return {
               referralTokenAccountPubKey,
