@@ -378,7 +378,7 @@ const DashboardHeader: React.FC<{
     return [shareBpsPct, 100 - shareBpsPct];
   }, [referralAccount]);
 
-  const claimAll = React.useCallback(async () => {
+  const claimTokens = React.useCallback(async () => {
     if (!wallet.publicKey) return;
 
     try {
@@ -443,7 +443,7 @@ const DashboardHeader: React.FC<{
             </div>
             <div className="mt-4 flex justify-end">
               <Button
-                onClick={claimAll}
+                onClick={claimTokens}
                 disabled={totalUnclaimed === 0}
                 loading={isClaiming}
               >
