@@ -390,6 +390,7 @@ const DashboardHeader: React.FC<{
         strategy: { type: "token-list", tokenList: "strict" },
         withdrawalableTokenAddress,
       });
+      setIsClaiming(false);
 
       await sendAllTransactions(txsCompiled);
       queryClient.refetchQueries({

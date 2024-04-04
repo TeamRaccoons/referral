@@ -686,7 +686,6 @@ export class ReferralProvider {
       result.map(async (item) => {
         const tokenAccountData = AccountLayout.decode(item.data);
 
-        console.log({ item, tokenAccountData });
         const isToken2022 = item.owner.equals(TOKEN_2022_PROGRAM_ID);
         const tokenProgramId = isToken2022
           ? TOKEN_2022_PROGRAM_ID
