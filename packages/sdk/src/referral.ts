@@ -660,7 +660,6 @@ export class ReferralProvider {
   public async claimPartially({
     payerPubKey,
     referralAccountPubKey,
-    strategy,
     withdrawalableTokenAddress,
   }: ClaimPartiallyVariable): Promise<VersionedTransaction[]> {
     const blockhash = (await this.connection.getLatestBlockhash()).blockhash;
@@ -684,12 +683,8 @@ export class ReferralProvider {
 
     const claimInstructionParams = await Promise.all(
       result.map(async (item) => {
+        const tokenProgramId = item.owner;
         const tokenAccountData = AccountLayout.decode(item.data);
-
-        const isToken2022 = item.owner.equals(TOKEN_2022_PROGRAM_ID);
-        const tokenProgramId = isToken2022
-          ? TOKEN_2022_PROGRAM_ID
-          : TOKEN_PROGRAM_ID;
 
         const referralTokenAccountPubKey = this.getReferralTokenAccountPubKey({
           referralAccountPubKey,
