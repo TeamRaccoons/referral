@@ -729,6 +729,22 @@ export class ReferralProvider {
           return withdrawalableTokenAddress.includes(item.pubkey.toString());
         });
 
+        // get all token accounts belong to partner and admin
+        const partnerTokenAccounts =
+          await this.connection.getParsedTokenAccountsByOwner(
+            referralAccount.partner,
+            {
+              programId: tokenProgramId,
+            },
+          );
+        const mintToPartnerTokenAccount = partnerTokenAccounts.value.reduce(
+          (acc, { pubkey, account }) => {
+            acc.set(account.data.parsed.info.mint, pubkey);
+            return acc;
+          },
+          new Map<string, PublicKey>(),
+        );
+
         const adminTokenAccounts =
           await this.connection.getParsedTokenAccountsByOwner(project.admin, {
             programId: tokenProgramId,
@@ -745,14 +761,7 @@ export class ReferralProvider {
         const claimParams = await Promise.all(
           tokensWithAmount.map(async (token) => {
             const mintBase58 = token.account.mint.toBase58();
-
-            const partnerTokenAccount = getAssociatedTokenAddressSync(
-              token.account.mint,
-              referralAccount.partner,
-              true,
-              tokenProgramId,
-            );
-
+            let partnerTokenAccount = mintToPartnerTokenAccount.get(mintBase58);
             let projectAdminTokenAccount =
               mintToAdminTokenAccount.get(mintBase58);
 
@@ -763,6 +772,24 @@ export class ReferralProvider {
               });
 
             const preInstructions: TransactionInstruction[] = [];
+
+            if (!partnerTokenAccount) {
+              partnerTokenAccount = getAssociatedTokenAddressSync(
+                token.account.mint,
+                referralAccount.partner,
+                true,
+                tokenProgramId,
+              );
+              preInstructions.push(
+                createAssociatedTokenAccountInstruction(
+                  payerPubKey,
+                  partnerTokenAccount,
+                  referralAccount.partner,
+                  token.account.mint,
+                  tokenProgramId,
+                ),
+              );
+            }
 
             if (!projectAdminTokenAccount) {
               projectAdminTokenAccount = getAssociatedTokenAddressSync(
@@ -826,7 +853,7 @@ export class ReferralProvider {
 
           chunk += 1;
 
-          if (chunk === 7) {
+          if (chunk === 5) {
             const messageV0 = new TransactionMessage({
               payerKey: payerPubKey,
               instructions,
