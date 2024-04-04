@@ -84,7 +84,7 @@ export interface ClaimAllVariable {
 }
 
 export interface ClaimPartiallyVariable extends ClaimAllVariable {
-  withdrawalableTokenAddress: string[];
+  withdrawalableTokenAddress: PublicKey[];
 }
 
 export interface RawAccountWithPubkey {
@@ -552,184 +552,6 @@ export class ReferralProvider {
           (item) => item.account.amount > 0 && item.account.state === 1,
         );
 
-        // get all token accounts belong to partner and admin
-        const partnerTokenAccounts =
-          await this.connection.getParsedTokenAccountsByOwner(
-            referralAccount.partner,
-            {
-              programId: tokenProgramId,
-            },
-          );
-        const mintToPartnerTokenAccount = partnerTokenAccounts.value.reduce(
-          (acc, { pubkey, account }) => {
-            acc.set(account.data.parsed.info.mint, pubkey);
-            return acc;
-          },
-          new Map<string, PublicKey>(),
-        );
-
-        const adminTokenAccounts =
-          await this.connection.getParsedTokenAccountsByOwner(project.admin, {
-            programId: tokenProgramId,
-          });
-        const mintToAdminTokenAccount = adminTokenAccounts.value.reduce(
-          (acc, { pubkey, account }) => {
-            acc.set(account.data.parsed.info.mint, pubkey);
-            return acc;
-          },
-          new Map<string, PublicKey>(),
-        );
-
-        const claimParams = await Promise.all(
-          tokensWithAmount.map(async (token) => {
-            const mintBase58 = token.account.mint.toBase58();
-            let partnerTokenAccount = mintToPartnerTokenAccount.get(mintBase58);
-            let projectAdminTokenAccount =
-              mintToAdminTokenAccount.get(mintBase58);
-            const referralTokenAccountPubKey =
-              this.getReferralTokenAccountPubKey({
-                referralAccountPubKey,
-                mint: token.account.mint,
-              });
-
-            const preInstructions: TransactionInstruction[] = [];
-
-            if (!partnerTokenAccount) {
-              partnerTokenAccount = getAssociatedTokenAddressSync(
-                token.account.mint,
-                referralAccount.partner,
-                true,
-                tokenProgramId,
-              );
-              preInstructions.push(
-                createAssociatedTokenAccountInstruction(
-                  payerPubKey,
-                  partnerTokenAccount,
-                  referralAccount.partner,
-                  token.account.mint,
-                  tokenProgramId,
-                ),
-              );
-            }
-
-            if (!projectAdminTokenAccount) {
-              projectAdminTokenAccount = getAssociatedTokenAddressSync(
-                token.account.mint,
-                project.admin,
-                true,
-                tokenProgramId,
-              );
-              const ix = await this.program.methods
-                .createAdminTokenAccount()
-                .accounts({
-                  project: referralAccount.project,
-                  projectAuthority,
-                  admin: project.admin,
-                  projectAdminTokenAccount,
-                  mint: token.account.mint,
-                  tokenProgram: tokenProgramId,
-                })
-                .instruction();
-
-              preInstructions.push(ix);
-            }
-
-            return {
-              referralTokenAccountPubKey,
-              projectAdminTokenAccount,
-              partnerTokenAccount,
-              preInstructions,
-              mint: token.account.mint,
-            };
-          }),
-        );
-
-        const txs: VersionedTransaction[] = [];
-        let instructions: TransactionInstruction[] = [];
-        let chunk = 0;
-        for (const {
-          referralTokenAccountPubKey,
-          projectAdminTokenAccount,
-          partnerTokenAccount,
-          mint,
-          preInstructions,
-        } of claimParams) {
-          const tx = await this.program.methods
-            .claim()
-            .accounts({
-              payer: payerPubKey,
-              project: referralAccount.project,
-              admin: project.admin,
-              projectAdminTokenAccount,
-              referralAccount: referralAccountPubKey,
-              referralTokenAccount: referralTokenAccountPubKey,
-              partner: referralAccount.partner,
-              partnerTokenAccount: partnerTokenAccount,
-              mint,
-              tokenProgram: tokenProgramId,
-            })
-            .preInstructions(preInstructions)
-            .transaction();
-          instructions.push(...tx.instructions);
-
-          chunk += 1;
-
-          if (chunk === 5) {
-            const messageV0 = new TransactionMessage({
-              payerKey: payerPubKey,
-              instructions,
-              recentBlockhash: blockhash,
-            }).compileToV0Message([lookupTableAccount]);
-            chunk = 0;
-            instructions = [];
-
-            txs.push(new VersionedTransaction(messageV0));
-          }
-        }
-        return txs;
-      }),
-    );
-
-    return vtTxs.flat();
-  }
-
-  public async claimPartially({
-    payerPubKey,
-    referralAccountPubKey,
-    strategy,
-    withdrawalableTokenAddress,
-  }: ClaimPartiallyVariable): Promise<VersionedTransaction[]> {
-    const blockhash = (await this.connection.getLatestBlockhash()).blockhash;
-    const lookupTableAccount = await this.connection
-      .getAddressLookupTable(
-        new PublicKey("GBzQG2iFrPwXjGtCnwNt9S5eHd8xAR8jUMt3QDJpnjud"),
-      )
-      .then((res) => res.value);
-
-    const referralAccount = await this.program.account.referralAccount.fetch(
-      referralAccountPubKey,
-    );
-    const project = await this.program.account.project.fetch(
-      referralAccount.project,
-    );
-    const projectAuthority = this.getProjectAuthorityPubKey(project);
-
-    const { tokenAccounts, token2022Accounts } = strategy
-      ? await this.getReferralTokenAccountsWithStrategy(
-          referralAccountPubKey.toString(),
-          strategy,
-        )
-      : await this.getReferralTokenAccounts(referralAccountPubKey.toString());
-
-    const vtTxs = await Promise.all(
-      [tokenAccounts, token2022Accounts].map(async (accounts, idx) => {
-        const tokenProgramId =
-          idx === 0 ? TOKEN_PROGRAM_ID : TOKEN_2022_PROGRAM_ID;
-
-        const tokensWithAmount = accounts.filter((item) => {
-          return withdrawalableTokenAddress.includes(item.pubkey.toString());
-        });
-
         const claimParams = await Promise.all(
           tokensWithAmount.map(async (token) => {
             const referralTokenAccountPubKey =
@@ -824,6 +646,7 @@ export class ReferralProvider {
             }).compileToV0Message([lookupTableAccount]);
             chunk = 0;
             instructions = [];
+
             txs.push(new VersionedTransaction(messageV0));
           }
         }
@@ -832,5 +655,143 @@ export class ReferralProvider {
     );
 
     return vtTxs.flat();
+  }
+
+  public async claimPartially({
+    payerPubKey,
+    referralAccountPubKey,
+    strategy,
+    withdrawalableTokenAddress,
+  }: ClaimPartiallyVariable): Promise<VersionedTransaction[]> {
+    const blockhash = (await this.connection.getLatestBlockhash()).blockhash;
+    const lookupTableAccount = await this.connection
+      .getAddressLookupTable(
+        new PublicKey("GBzQG2iFrPwXjGtCnwNt9S5eHd8xAR8jUMt3QDJpnjud"),
+      )
+      .then((res) => res.value);
+
+    const referralAccount = await this.program.account.referralAccount.fetch(
+      referralAccountPubKey,
+    );
+    const project = await this.program.account.project.fetch(
+      referralAccount.project,
+    );
+    const projectAuthority = this.getProjectAuthorityPubKey(project);
+
+    const result = await this.connection.getMultipleAccountsInfo(
+      withdrawalableTokenAddress,
+    );
+
+    const claimInstructionParams = await Promise.all(
+      result.map(async (item) => {
+        const tokenAccountData = AccountLayout.decode(item.data);
+
+        console.log({ item, tokenAccountData });
+        const isToken2022 = item.owner.equals(TOKEN_2022_PROGRAM_ID);
+        const tokenProgramId = isToken2022
+          ? TOKEN_2022_PROGRAM_ID
+          : TOKEN_PROGRAM_ID;
+
+        const referralTokenAccountPubKey = this.getReferralTokenAccountPubKey({
+          referralAccountPubKey,
+          mint: tokenAccountData.mint,
+        });
+
+        const preInstructions: TransactionInstruction[] = [];
+
+        const partnerTokenAccount = getAssociatedTokenAddressSync(
+          tokenAccountData.mint,
+          referralAccount.partner,
+          true,
+          tokenProgramId,
+        );
+        preInstructions.push(
+          createAssociatedTokenAccountIdempotentInstruction(
+            payerPubKey,
+            partnerTokenAccount,
+            referralAccount.partner,
+            tokenAccountData.mint,
+            tokenProgramId,
+          ),
+        );
+
+        const projectAdminTokenAccount = getAssociatedTokenAddressSync(
+          tokenAccountData.mint,
+          project.admin,
+          true,
+          tokenProgramId,
+        );
+
+        const ix = await this.program.methods
+          .createAdminTokenAccount()
+          .accounts({
+            project: referralAccount.project,
+            projectAuthority,
+            admin: project.admin,
+            projectAdminTokenAccount,
+            mint: tokenAccountData.mint,
+            tokenProgram: tokenProgramId,
+          })
+          .instruction();
+
+        preInstructions.push(ix);
+
+        return {
+          referralTokenAccountPubKey,
+          projectAdminTokenAccount,
+          partnerTokenAccount,
+          preInstructions,
+          tokenProgramId,
+          mint: tokenAccountData.mint,
+        };
+      }),
+    );
+
+    const txs: VersionedTransaction[] = [];
+    let instructions: TransactionInstruction[] = [];
+    let chunk = 0;
+
+    for (const {
+      referralTokenAccountPubKey,
+      projectAdminTokenAccount,
+      partnerTokenAccount,
+      mint,
+      preInstructions,
+      tokenProgramId,
+    } of claimInstructionParams) {
+      const tx = await this.program.methods
+        .claim()
+        .accounts({
+          payer: payerPubKey,
+          project: referralAccount.project,
+          admin: project.admin,
+          projectAdminTokenAccount,
+          referralAccount: referralAccountPubKey,
+          referralTokenAccount: referralTokenAccountPubKey,
+          partner: referralAccount.partner,
+          partnerTokenAccount: partnerTokenAccount,
+          mint,
+          tokenProgram: tokenProgramId,
+        })
+        .preInstructions(preInstructions)
+        .transaction();
+      instructions.push(...tx.instructions);
+
+      chunk += 1;
+
+      if (chunk === 5) {
+        const messageV0 = new TransactionMessage({
+          payerKey: payerPubKey,
+          instructions,
+          recentBlockhash: blockhash,
+        }).compileToV0Message([lookupTableAccount]);
+        chunk = 0;
+        instructions = [];
+
+        txs.push(new VersionedTransaction(messageV0));
+      }
+    }
+
+    return txs;
   }
 }

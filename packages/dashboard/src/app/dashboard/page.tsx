@@ -9,6 +9,7 @@ import { PublicKey } from "@solana/web3.js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Decimal } from "decimal.js";
 import { Dot } from "lucide-react";
+import { it } from "node:test";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -276,13 +277,13 @@ const TokenTable: React.FC<
   }, [referralTokens, tokenInfosMap, pricesHash]);
 
   // Only withdraw tokens with value >= 1
-  const withdrawalableTokenAddress = React.useMemo(
-    () =>
-      data
-        .filter((item) => item.value.gte(new Decimal(1)))
-        .map((item) => item.address),
-    [data],
-  );
+  const withdrawalableTokenAccounts = React.useMemo(() => {
+    const addressWithValue = data
+      .filter((item) => item.value.gte(new Decimal(1)))
+      .map((item) => new PublicKey(item.address));
+
+    return addressWithValue;
+  }, [data]);
 
   React.useMemo(() => {
     const url = `/dashboard/${referralPubkey.toString()}/create-token-accounts`;
@@ -300,7 +301,7 @@ const TokenTable: React.FC<
   ) : (
     <>
       <DashboardHeader
-        withdrawalableTokenAddress={withdrawalableTokenAddress}
+        withdrawalableTokenAddress={withdrawalableTokenAccounts}
         referralProvider={referralProvider}
         referralPubkey={referralPubkey}
         referralAccount={referralAccount}
@@ -341,7 +342,7 @@ const TokenTable: React.FC<
 };
 
 const DashboardHeader: React.FC<{
-  withdrawalableTokenAddress: string[];
+  withdrawalableTokenAddress: PublicKey[];
   referralProvider: ReferralProvider;
   referralPubkey: PublicKey;
   referralAccount: ReferralAccount;
