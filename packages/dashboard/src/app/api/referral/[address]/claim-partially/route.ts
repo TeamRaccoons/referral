@@ -16,7 +16,7 @@ export async function POST(
   request: Request,
   {
     params: { address, withdrawalableTokenAddress },
-  }: { params: { address: string; withdrawalableTokenAddress: string[] } },
+  }: { params: { address: string; withdrawalableTokenAddress: PublicKey[] } },
 ) {
   try {
     const connection = new Connection(RPC_URL);
