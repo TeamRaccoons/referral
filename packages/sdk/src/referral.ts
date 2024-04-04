@@ -745,6 +745,14 @@ export class ReferralProvider {
         const claimParams = await Promise.all(
           tokensWithAmount.map(async (token) => {
             const mintBase58 = token.account.mint.toBase58();
+
+            const partnerTokenAccount = getAssociatedTokenAddressSync(
+              token.account.mint,
+              referralAccount.partner,
+              true,
+              tokenProgramId,
+            );
+
             let projectAdminTokenAccount =
               mintToAdminTokenAccount.get(mintBase58);
 
@@ -781,7 +789,7 @@ export class ReferralProvider {
             return {
               referralTokenAccountPubKey,
               projectAdminTokenAccount,
-              partnerTokenAccount: token.account.mint,
+              partnerTokenAccount,
               preInstructions,
               mint: token.account.mint,
             };
