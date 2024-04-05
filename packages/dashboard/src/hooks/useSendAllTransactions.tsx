@@ -12,7 +12,8 @@ import { getSignature } from "@/lib/utils";
 
 export const useSendAllTransactions = () => {
   const { connection } = useConnection();
-  const { wallet, publicKey, signAllTransactions } = useWallet();
+  const { wallet, publicKey, signTransaction, signAllTransactions } =
+    useWallet();
   const { toast } = useToast();
 
   const sendAllTransactions = useCallback(
@@ -61,23 +62,35 @@ export const useSendAllTransactions = () => {
         let txDoneCount = 0;
         let errorTxids: string[] = [];
         let successTxids: string[] = [];
+        let unitsConsumedArray: number[] = [];
         await Promise.all(
-          txs.map(async (tx) => {
+          txs.map(async (tx, index) => {
             let rawTx = Buffer.from(tx.serialize());
             let txid = getSignature(tx);
+            let simulationResult;
+            if (tx instanceof VersionedTransaction) {
+              simulationResult = await connection.simulateTransaction(tx);
+              console.log(Buffer.from(tx.serialize()).toString("base64"));
+            }
 
-            await sendAndConfirmRawTransaction(
-              connection,
-              rawTx,
-              {
-                signature: txid,
-                blockhash,
-                lastValidBlockHeight,
-              },
-              {
-                skipPreflight: true,
-              },
-            );
+            const unitsConsumed = simulationResult?.value?.unitsConsumed;
+            if (unitsConsumed) {
+              console.log({ index, unitsConsumed });
+              unitsConsumedArray.push(unitsConsumed);
+            }
+
+            // await sendAndConfirmRawTransaction(
+            //   connection,
+            //   rawTx,
+            //   {
+            //     signature: txid,
+            //     blockhash,
+            //     lastValidBlockHeight,
+            //   },
+            //   {
+            //     skipPreflight: true,
+            //   },
+            // );
 
             txDoneCount++;
             toast({
@@ -96,6 +109,13 @@ export const useSendAllTransactions = () => {
             }
           }),
         );
+
+        // Calculate the average units consumed
+        let totalUnitsConsumed = unitsConsumedArray.reduce((a, b) => a + b, 0);
+        let averageUnitsConsumed =
+          totalUnitsConsumed / unitsConsumedArray.length;
+
+        console.log({ totalUnitsConsumed, averageUnitsConsumed });
 
         if (errorTxids.length > 0) {
           toast({

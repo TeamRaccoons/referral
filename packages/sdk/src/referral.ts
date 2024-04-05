@@ -20,6 +20,7 @@ import chunk from "lodash/chunk";
 
 import { chunkedGetMultipleAccountInfos } from "./chunks";
 import { PROGRAM_ID } from "./constant";
+import { feeRepository } from "./data/FeeRepository";
 import { IDL, Referral } from "./idl";
 import { getOrCreateATAInstruction } from "./utils";
 
@@ -498,7 +499,7 @@ export class ReferralProvider {
       preInstructions.push(ix);
     }
 
-    return await this.program.methods
+    const transaction = await this.program.methods
       .claim()
       .accounts({
         payer: payerPubKey,
@@ -514,6 +515,9 @@ export class ReferralProvider {
       })
       .preInstructions(preInstructions)
       .transaction();
+
+    await feeRepository.modifyComputeUnitLimitAndPrice(transaction);
+    return transaction;
   }
 
   public async claimAll({
@@ -638,6 +642,9 @@ export class ReferralProvider {
           chunk += 1;
 
           if (chunk === 5) {
+            await feeRepository.modifyComputeUnitLimitAndPrice(tx);
+            instructions.push(...tx.instructions);
+
             const messageV0 = new TransactionMessage({
               payerKey: payerPubKey,
               instructions,
@@ -740,49 +747,62 @@ export class ReferralProvider {
       }),
     );
 
-    const txs: VersionedTransaction[] = [];
-    const chunkedInstructions = chunk(claimInstructionParams, 5);
+    const chunkedInstructions = chunk(claimInstructionParams, 4);
 
-    chunkedInstructions.forEach(async (chunkParams) => {
-      let instructions: TransactionInstruction[] = [];
+    const txs: VersionedTransaction[] = await Promise.all(
+      chunkedInstructions.map(async (chunkParams) => {
+        let instructions: TransactionInstruction[] = [];
 
-      for (const {
-        referralTokenAccountPubKey,
-        projectAdminTokenAccount,
-        partnerTokenAccount,
-        mint,
-        preInstructions,
-        tokenProgramId,
-      } of chunkParams) {
-        const tx = await this.program.methods
-          .claim()
-          .accounts({
-            payer: payerPubKey,
-            project: referralAccount.project,
-            admin: project.admin,
-            projectAdminTokenAccount,
-            referralAccount: referralAccountPubKey,
-            referralTokenAccount: referralTokenAccountPubKey,
-            partner: referralAccount.partner,
-            partnerTokenAccount: partnerTokenAccount,
-            mint,
-            tokenProgram: tokenProgramId,
-          })
-          .preInstructions(preInstructions)
-          .transaction();
-        instructions.push(...tx.instructions);
-      }
+        await Promise.all(
+          chunkParams.map(
+            async (
+              {
+                referralTokenAccountPubKey,
+                projectAdminTokenAccount,
+                partnerTokenAccount,
+                mint,
+                preInstructions,
+                tokenProgramId,
+              },
+              index,
+            ) => {
+              const tx = await this.program.methods
+                .claim()
+                .accounts({
+                  payer: payerPubKey,
+                  project: referralAccount.project,
+                  admin: project.admin,
+                  projectAdminTokenAccount,
+                  referralAccount: referralAccountPubKey,
+                  referralTokenAccount: referralTokenAccountPubKey,
+                  partner: referralAccount.partner,
+                  partnerTokenAccount: partnerTokenAccount,
+                  mint,
+                  tokenProgram: tokenProgramId,
+                })
+                .preInstructions(preInstructions)
+                .transaction();
 
-      const messageV0 = new TransactionMessage({
-        payerKey: payerPubKey,
-        instructions,
-        recentBlockhash: blockhash,
-      }).compileToV0Message([lookupTableAccount]);
+              instructions.push(...tx.instructions);
+              if (index === chunkParams.length - 1) {
+                await feeRepository.modifyComputeUnitLimitAndPrice(tx);
+                instructions.push(...tx.instructions);
+              }
+            },
+          ),
+        );
 
-      instructions = [];
+        const messageV0 = new TransactionMessage({
+          payerKey: payerPubKey,
+          instructions,
+          recentBlockhash: blockhash,
+        }).compileToV0Message([lookupTableAccount]);
 
-      txs.push(new VersionedTransaction(messageV0));
-    });
+        instructions = [];
+
+        return new VersionedTransaction(messageV0);
+      }),
+    );
 
     return txs;
   }
