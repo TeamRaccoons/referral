@@ -20,7 +20,7 @@ import chunk from "lodash/chunk";
 
 import { chunkedGetMultipleAccountInfos } from "./chunks";
 import { PROGRAM_ID } from "./constant";
-import { feeRepository } from "./data/FeeRepository";
+import { feeRepository } from "./FeeRepository";
 import { IDL, Referral } from "./idl";
 import { getOrCreateATAInstruction } from "./utils";
 
@@ -637,7 +637,6 @@ export class ReferralProvider {
             })
             .preInstructions(preInstructions)
             .transaction();
-          instructions.push(...tx.instructions);
 
           chunk += 1;
 
@@ -654,6 +653,8 @@ export class ReferralProvider {
             instructions = [];
 
             txs.push(new VersionedTransaction(messageV0));
+          } else {
+            instructions.push(...tx.instructions);
           }
         }
         return txs;

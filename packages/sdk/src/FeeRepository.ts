@@ -11,7 +11,23 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 
-import { RPC_URL } from "../constant";
+import { RPC_URL } from "./constant";
+
+interface Fee {
+  m: number;
+  h: number;
+  vh: number;
+}
+
+interface MarketReferenceFee {
+  claim: number;
+  jup: Fee;
+  jup2: Fee;
+  loAndDCA: number;
+  perps: Fee;
+  swapFee: number;
+  lastUpdatedAt: number;
+}
 
 interface FeeRepository {
   modifyComputeUnitLimitAndPrice: (
@@ -27,6 +43,8 @@ class FeeRepositoryImpl implements FeeRepository {
   // average `unitsConsumed` value from all transactions sent by `sendAllTransactions`
   private readonly COMPUTE_UNIT_LIMIT = 500_000;
 
+  private readonly MINIMUM_FEE_IN_MICRO_LAMPORTS = 10_000;
+
   private connection: Connection;
 
   // --------------------
@@ -37,6 +55,16 @@ class FeeRepositoryImpl implements FeeRepository {
   }
 
   // --------------------
+  // API
+  // --------------------
+  private getMarketReferenceFee = async (): Promise<MarketReferenceFee> => {
+    const data = (
+      await fetch("https://cache.jup.ag/jup-claim-reference-fees")
+    ).json() as unknown as MarketReferenceFee;
+    return data;
+  };
+
+  // --------------------
   // Helper methods
   // --------------------
   private getFeeInMicroLamportsFromLamports = (
@@ -44,23 +72,20 @@ class FeeRepositoryImpl implements FeeRepository {
     computeUnitLimit: number,
   ) => Math.floor((totalFeeInLamports * 1_000_000) / computeUnitLimit);
 
-  private getEstimatedPriorityFeeInMicroLamports = async (
-    tx: Transaction | VersionedTransaction,
-  ) => {
-    const estimatedPriorityFeeInLamports = await estimatePriorityFee(
-      this.connection,
-      {
-        tx,
-      },
-    );
-
-    const estimatedPriorityFeeInMicroLamports =
+  private getPriorityFeeInMicroLamports = async () => {
+    const marketReferenceFee = await this.getMarketReferenceFee();
+    const loAndDCAReferenceFeeInMicroLamports =
       this.getFeeInMicroLamportsFromLamports(
-        estimatedPriorityFeeInLamports || 0,
+        marketReferenceFee.loAndDCA,
         this.COMPUTE_UNIT_LIMIT,
       );
 
-    return Math.max(estimatedPriorityFeeInMicroLamports, 10_000);
+    const priorityFeeInMicroLamports = Math.min(
+      this.MINIMUM_FEE_IN_MICRO_LAMPORTS,
+      loAndDCAReferenceFeeInMicroLamports,
+    );
+
+    return priorityFeeInMicroLamports;
   };
 
   // --------------------
@@ -68,10 +93,8 @@ class FeeRepositoryImpl implements FeeRepository {
   // --------------------
   modifyComputeUnitLimitAndPrice: FeeRepository["modifyComputeUnitLimitAndPrice"] =
     async (tx) => {
-      const estimatedPriorityFeeInMicroLamports =
-        await this.getEstimatedPriorityFeeInMicroLamports(tx);
-
-      console.log({ estimatedPriorityFeeInMicroLamports });
+      const priorityFeeInMicroLamports =
+        await this.getPriorityFeeInMicroLamports();
 
       const modifyUnitLimitResult = modifyComputeUnitLimitIx(
         tx,
@@ -79,7 +102,7 @@ class FeeRepositoryImpl implements FeeRepository {
       );
       const modifyModifyUnitPriceResult = modifyPriorityFeeIx(
         tx,
-        estimatedPriorityFeeInMicroLamports,
+        priorityFeeInMicroLamports,
       );
 
       return modifyUnitLimitResult && modifyModifyUnitPriceResult;
