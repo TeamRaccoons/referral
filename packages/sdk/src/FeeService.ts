@@ -53,7 +53,7 @@ class FeeServiceImpl implements FeeService {
     totalFeeInLamports: number,
     computeUnitLimit: number,
   ) => Math.floor((totalFeeInLamports * 1_000_000) / computeUnitLimit);
-  r;
+
   private getPriorityFeeInMicroLamports = async () => {
     const marketReferenceFee = await this.getMarketReferenceFee();
     const loAndDCAReferenceFeeInMicroLamports =
