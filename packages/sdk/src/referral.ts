@@ -20,7 +20,7 @@ import chunk from "lodash/chunk";
 
 import { chunkedGetMultipleAccountInfos } from "./chunks";
 import { PROGRAM_ID } from "./constant";
-import { feeRepository } from "./FeeRepository";
+import { feeService } from "./FeeService";
 import { IDL, Referral } from "./idl";
 import { getOrCreateATAInstruction } from "./utils";
 
@@ -516,7 +516,7 @@ export class ReferralProvider {
       .preInstructions(preInstructions)
       .transaction();
 
-    await feeRepository.modifyComputeUnitLimitAndPrice(transaction);
+    await feeService.modifyComputeUnitLimitAndPrice(transaction);
     return transaction;
   }
 
@@ -641,7 +641,7 @@ export class ReferralProvider {
           chunk += 1;
 
           if (chunk === 3) {
-            await feeRepository.modifyComputeUnitLimitAndPrice(tx);
+            await feeService.modifyComputeUnitLimitAndPrice(tx);
             instructions.push(...tx.instructions);
 
             const messageV0 = new TransactionMessage({
@@ -785,7 +785,7 @@ export class ReferralProvider {
                 .transaction();
 
               if (index === chunkParams.length - 1) {
-                await feeRepository.modifyComputeUnitLimitAndPrice(tx);
+                await feeService.modifyComputeUnitLimitAndPrice(tx);
               }
               instructions.push(...tx.instructions);
             },

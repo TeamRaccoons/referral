@@ -1,17 +1,8 @@
 import {
-  estimatePriorityFee,
   modifyComputeUnitLimitIx,
   modifyPriorityFeeIx,
 } from "@mercurial-finance/optimist";
-import {
-  ComputeBudgetProgram,
-  Connection,
-  Transaction,
-  TransactionInstruction,
-  VersionedTransaction,
-} from "@solana/web3.js";
-
-import { RPC_URL } from "./constant";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 interface Fee {
   m: number;
@@ -29,13 +20,13 @@ interface MarketReferenceFee {
   lastUpdatedAt: number;
 }
 
-interface FeeRepository {
+interface FeeService {
   modifyComputeUnitLimitAndPrice: (
     tx: Transaction | VersionedTransaction,
   ) => Promise<boolean>;
 }
 
-class FeeRepositoryImpl implements FeeRepository {
+class FeeServiceImpl implements FeeService {
   // --------------------
   // Properties
   // --------------------
@@ -44,15 +35,6 @@ class FeeRepositoryImpl implements FeeRepository {
   private readonly COMPUTE_UNIT_LIMIT = 500_000;
 
   private readonly MINIMUM_FEE_IN_MICRO_LAMPORTS = 10_000;
-
-  private connection: Connection;
-
-  // --------------------
-  // Constructor
-  // --------------------
-  constructor() {
-    this.connection = new Connection(RPC_URL);
-  }
 
   // --------------------
   // API
@@ -71,7 +53,7 @@ class FeeRepositoryImpl implements FeeRepository {
     totalFeeInLamports: number,
     computeUnitLimit: number,
   ) => Math.floor((totalFeeInLamports * 1_000_000) / computeUnitLimit);
-
+  r;
   private getPriorityFeeInMicroLamports = async () => {
     const marketReferenceFee = await this.getMarketReferenceFee();
     const loAndDCAReferenceFeeInMicroLamports =
@@ -91,7 +73,7 @@ class FeeRepositoryImpl implements FeeRepository {
   // --------------------
   // Main methods
   // --------------------
-  modifyComputeUnitLimitAndPrice: FeeRepository["modifyComputeUnitLimitAndPrice"] =
+  modifyComputeUnitLimitAndPrice: FeeService["modifyComputeUnitLimitAndPrice"] =
     async (tx) => {
       const priorityFeeInMicroLamports =
         await this.getPriorityFeeInMicroLamports();
@@ -109,4 +91,4 @@ class FeeRepositoryImpl implements FeeRepository {
     };
 }
 
-export const feeRepository = new FeeRepositoryImpl();
+export const feeService = new FeeServiceImpl();
