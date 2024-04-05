@@ -32,7 +32,7 @@ class FeeServiceImpl implements FeeService {
   // --------------------
 
   // average `unitsConsumed` value from all transactions sent by `sendAllTransactions`
-  private readonly COMPUTE_UNIT_LIMIT = 500_000;
+  private readonly COMPUTE_UNIT_LIMIT = 400_000;
 
   private readonly MINIMUM_FEE_IN_MICRO_LAMPORTS = 10_000;
 
