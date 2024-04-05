@@ -12,8 +12,7 @@ import { getSignature } from "@/lib/utils";
 
 export const useSendAllTransactions = () => {
   const { connection } = useConnection();
-  const { wallet, publicKey, signTransaction, signAllTransactions } =
-    useWallet();
+  const { wallet, publicKey, signAllTransactions } = useWallet();
   const { toast } = useToast();
 
   const sendAllTransactions = useCallback(
@@ -63,7 +62,7 @@ export const useSendAllTransactions = () => {
         let errorTxids: string[] = [];
         let successTxids: string[] = [];
         await Promise.all(
-          txs.map(async (tx, index) => {
+          txs.map(async (tx) => {
             let rawTx = Buffer.from(tx.serialize());
             let txid = getSignature(tx);
 
