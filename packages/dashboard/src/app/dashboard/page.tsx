@@ -384,6 +384,7 @@ const DashboardHeader: React.FC<{
 
     try {
       setIsClaiming(true);
+
       const txsCompiled = await referralProvider.claimPartially({
         payerPubKey: wallet.publicKey,
         referralAccountPubKey: referralPubkey,
@@ -445,7 +446,7 @@ const DashboardHeader: React.FC<{
             <div className="mt-4 flex justify-end">
               <Button
                 onClick={claimTokens}
-                disabled={totalUnclaimed === 0}
+                disabled={withdrawalableTokenAddress.length === 0}
                 loading={isClaiming}
               >
                 Claim
