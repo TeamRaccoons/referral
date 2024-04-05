@@ -783,11 +783,10 @@ export class ReferralProvider {
                 .preInstructions(preInstructions)
                 .transaction();
 
-              instructions.push(...tx.instructions);
               if (index === chunkParams.length - 1) {
                 await feeRepository.modifyComputeUnitLimitAndPrice(tx);
-                instructions.push(...tx.instructions);
               }
+              instructions.push(...tx.instructions);
             },
           ),
         );

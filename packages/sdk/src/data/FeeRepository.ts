@@ -60,7 +60,7 @@ class FeeRepositoryImpl implements FeeRepository {
         this.COMPUTE_UNIT_LIMIT,
       );
 
-    return estimatedPriorityFeeInMicroLamports;
+    return Math.max(estimatedPriorityFeeInMicroLamports, 10_000);
   };
 
   // --------------------
@@ -70,6 +70,8 @@ class FeeRepositoryImpl implements FeeRepository {
     async (tx) => {
       const estimatedPriorityFeeInMicroLamports =
         await this.getEstimatedPriorityFeeInMicroLamports(tx);
+
+      console.log({ estimatedPriorityFeeInMicroLamports });
 
       const modifyUnitLimitResult = modifyComputeUnitLimitIx(
         tx,
