@@ -640,7 +640,7 @@ export class ReferralProvider {
 
           chunk += 1;
 
-          if (chunk === 5) {
+          if (chunk === 3) {
             await feeRepository.modifyComputeUnitLimitAndPrice(tx);
             instructions.push(...tx.instructions);
 
@@ -748,7 +748,7 @@ export class ReferralProvider {
       }),
     );
 
-    const chunkedInstructions = chunk(claimInstructionParams, 4);
+    const chunkedInstructions = chunk(claimInstructionParams, 3);
 
     const txs: VersionedTransaction[] = await Promise.all(
       chunkedInstructions.map(async (chunkParams) => {
