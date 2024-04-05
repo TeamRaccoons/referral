@@ -2,7 +2,6 @@ import { AnchorProvider, IdlAccounts, Program } from "@coral-xyz/anchor";
 import {
   AccountLayout,
   createAssociatedTokenAccountIdempotentInstruction,
-  createAssociatedTokenAccountInstruction,
   getAssociatedTokenAddressSync,
   RawAccount,
   TOKEN_2022_PROGRAM_ID,
@@ -742,49 +741,48 @@ export class ReferralProvider {
     );
 
     const txs: VersionedTransaction[] = [];
-    let instructions: TransactionInstruction[] = [];
-    let chunk = 0;
+    const chunkedInstructions = chunk(claimInstructionParams, 5);
 
-    for (const {
-      referralTokenAccountPubKey,
-      projectAdminTokenAccount,
-      partnerTokenAccount,
-      mint,
-      preInstructions,
-      tokenProgramId,
-    } of claimInstructionParams) {
-      const tx = await this.program.methods
-        .claim()
-        .accounts({
-          payer: payerPubKey,
-          project: referralAccount.project,
-          admin: project.admin,
-          projectAdminTokenAccount,
-          referralAccount: referralAccountPubKey,
-          referralTokenAccount: referralTokenAccountPubKey,
-          partner: referralAccount.partner,
-          partnerTokenAccount: partnerTokenAccount,
-          mint,
-          tokenProgram: tokenProgramId,
-        })
-        .preInstructions(preInstructions)
-        .transaction();
-      instructions.push(...tx.instructions);
+    chunkedInstructions.forEach(async (chunkParams) => {
+      let instructions: TransactionInstruction[] = [];
 
-      chunk += 1;
-
-      if (chunk === 5) {
-        const messageV0 = new TransactionMessage({
-          payerKey: payerPubKey,
-          instructions,
-          recentBlockhash: blockhash,
-        }).compileToV0Message([lookupTableAccount]);
-        chunk = 0;
-        instructions = [];
-
-        txs.push(new VersionedTransaction(messageV0));
+      for (const {
+        referralTokenAccountPubKey,
+        projectAdminTokenAccount,
+        partnerTokenAccount,
+        mint,
+        preInstructions,
+        tokenProgramId,
+      } of chunkParams) {
+        const tx = await this.program.methods
+          .claim()
+          .accounts({
+            payer: payerPubKey,
+            project: referralAccount.project,
+            admin: project.admin,
+            projectAdminTokenAccount,
+            referralAccount: referralAccountPubKey,
+            referralTokenAccount: referralTokenAccountPubKey,
+            partner: referralAccount.partner,
+            partnerTokenAccount: partnerTokenAccount,
+            mint,
+            tokenProgram: tokenProgramId,
+          })
+          .preInstructions(preInstructions)
+          .transaction();
+        instructions.push(...tx.instructions);
       }
-    }
+
+      const messageV0 = new TransactionMessage({
+        payerKey: payerPubKey,
+        instructions,
+        recentBlockhash: blockhash,
+      }).compileToV0Message([lookupTableAccount]);
+
+      instructions = [];
+
+      txs.push(new VersionedTransaction(messageV0));
+    });
 
     return txs;
   }
