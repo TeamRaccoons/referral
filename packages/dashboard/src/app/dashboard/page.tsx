@@ -9,6 +9,7 @@ import { PublicKey } from "@solana/web3.js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Decimal } from "decimal.js";
 import { Dot } from "lucide-react";
+import { it } from "node:test";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -48,7 +49,7 @@ import { useTopTokens } from "@/hooks/useTopTokens";
 import { useTotalUnclaimed } from "@/hooks/useTotalUnclaimed";
 import { JUPITER_PROJECT } from "@/lib/constants";
 import { getReferralAccounts } from "@/lib/referral";
-import { nonNullable } from "@/lib/utils";
+import { cn, nonNullable } from "@/lib/utils";
 
 interface IDashboardProps {
   params: { referral: string };
@@ -267,13 +268,22 @@ const TokenTable: React.FC<
           tokenName: `${tokenInfo.name} (${tokenInfo.symbol})`,
           mint,
           price,
+          amount,
           value: amount.mul(price),
           address: pubkey.toBase58(),
-          amount: amount,
         };
       })
       .filter(nonNullable);
   }, [referralTokens, tokenInfosMap, pricesHash]);
+
+  // Only withdraw tokens with value >= 1
+  const withdrawalableTokenAccounts = React.useMemo(() => {
+    const addressWithValue = data
+      .filter((item) => item.value.gte(new Decimal(1)))
+      .map((item) => new PublicKey(item.address));
+
+    return addressWithValue;
+  }, [data]);
 
   React.useMemo(() => {
     const url = `/dashboard/${referralPubkey.toString()}/create-token-accounts`;
@@ -291,6 +301,7 @@ const TokenTable: React.FC<
   ) : (
     <>
       <DashboardHeader
+        withdrawalableTokenAddress={withdrawalableTokenAccounts}
         referralProvider={referralProvider}
         referralPubkey={referralPubkey}
         referralAccount={referralAccount}
@@ -331,10 +342,17 @@ const TokenTable: React.FC<
 };
 
 const DashboardHeader: React.FC<{
+  withdrawalableTokenAddress: PublicKey[];
   referralProvider: ReferralProvider;
   referralPubkey: PublicKey;
   referralAccount: ReferralAccount;
-}> = ({ referralProvider, referralPubkey, referralAccount }) => {
+}> = ({
+  withdrawalableTokenAddress,
+  referralProvider,
+  referralPubkey,
+  referralAccount,
+}) => {
+  const [isClaiming, setIsClaiming] = React.useState(false);
   const wallet = useWallet();
   const queryClient = useQueryClient();
   const sendAllTransactions = useSendAllTransactions();
@@ -361,20 +379,28 @@ const DashboardHeader: React.FC<{
     return [shareBpsPct, 100 - shareBpsPct];
   }, [referralAccount]);
 
-  const claimAll = React.useCallback(async () => {
+  const claimTokens = React.useCallback(async () => {
     if (!wallet.publicKey) return;
 
-    const txsCompiled = await referralProvider.claimAll({
-      payerPubKey: wallet.publicKey,
-      referralAccountPubKey: referralPubkey,
-      strategy: { type: "token-list", tokenList: "strict" },
-    });
+    try {
+      setIsClaiming(true);
 
-    await sendAllTransactions(txsCompiled);
-    queryClient.refetchQueries({
-      queryKey: ["tokens"],
-    });
+      const txsCompiled = await referralProvider.claimPartially({
+        payerPubKey: wallet.publicKey,
+        referralAccountPubKey: referralPubkey,
+        withdrawalableTokenAddress,
+      });
+      setIsClaiming(false);
+
+      await sendAllTransactions(txsCompiled);
+      queryClient.refetchQueries({
+        queryKey: ["tokens"],
+      });
+    } finally {
+      setIsClaiming(false);
+    }
   }, [
+    withdrawalableTokenAddress,
     referralPubkey,
     wallet,
     referralProvider,
@@ -418,9 +444,20 @@ const DashboardHeader: React.FC<{
               )}
             </div>
             <div className="mt-4 flex justify-end">
-              <Button onClick={claimAll} disabled={totalUnclaimed === 0}>
-                Claim All
+              <Button
+                onClick={claimTokens}
+                disabled={withdrawalableTokenAddress.length === 0}
+                loading={isClaiming}
+              >
+                Claim
               </Button>
+            </div>
+
+            <div className="mt-2 flex justify-end text-right text-xs text-[#E8F9FF]/50">
+              <div className="max-w-[300px]">
+                Only stricts tokens with value more than $1 with be claimed.
+                Please use the SDK to claim other tokens.
+              </div>
             </div>
           </CardContent>
         </Card>

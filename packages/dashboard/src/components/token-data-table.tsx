@@ -38,6 +38,7 @@ import { useToast } from "./ui/use-toast";
 export type TokenDataTableRowData = {
   tokenName: string;
   mint: string;
+  value: Decimal;
   address: string;
   amount: Decimal;
   price: Decimal;
