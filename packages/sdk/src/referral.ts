@@ -435,7 +435,7 @@ export class ReferralProvider {
     payerPubKey,
     referralAccountPubKey,
     mint,
-  }: ClaimVariable): Promise<Transaction> {
+  }: ClaimVariable): Promise<VersionedTransaction> {
     const mintAccount = await this.connection.getAccountInfo(mint);
     if (!mintAccount) throw new Error("Invalid mint");
 
@@ -500,7 +500,7 @@ export class ReferralProvider {
       preInstructions.push(ix);
     }
 
-    return await this.program.methods
+    const transaction = await this.program.methods
       .claim()
       .accounts({
         payer: payerPubKey,
@@ -516,6 +516,37 @@ export class ReferralProvider {
       })
       .preInstructions(preInstructions)
       .transaction();
+    const instructions = transaction.instructions;
+
+    // Get Address Lookup Table
+    const addressLookupTable = await this.connection.getAddressLookupTable(
+      new PublicKey("GBzQG2iFrPwXjGtCnwNt9S5eHd8xAR8jUMt3QDJpnjud"),
+    );
+    const lookupTableAccount = addressLookupTable.value;
+
+    // Priority Fee Instructions
+    const { units, microLamports } =
+      await feeService.getOptimalComputeUnitLimitAndPrice({
+        instructions: transaction.instructions,
+        payer: payerPubKey,
+        lookupTables: [lookupTableAccount],
+      });
+    instructions.unshift(
+      ComputeBudgetProgram.setComputeUnitPrice({ microLamports }),
+    );
+    if (units) {
+      instructions.unshift(ComputeBudgetProgram.setComputeUnitLimit({ units }));
+    }
+
+    // Compile to V0 Message
+    const blockhash = (await this.connection.getLatestBlockhash()).blockhash;
+    const messageV0 = new TransactionMessage({
+      payerKey: payerPubKey,
+      instructions,
+      recentBlockhash: blockhash,
+    }).compileToV0Message([lookupTableAccount]);
+
+    return new VersionedTransaction(messageV0);
   }
 
   public async claimAll({
@@ -767,17 +798,14 @@ export class ReferralProvider {
 
         await Promise.all(
           chunkParams.map(
-            async (
-              {
-                referralTokenAccountPubKey,
-                projectAdminTokenAccount,
-                partnerTokenAccount,
-                mint,
-                preInstructions,
-                tokenProgramId,
-              },
-              index,
-            ) => {
+            async ({
+              referralTokenAccountPubKey,
+              projectAdminTokenAccount,
+              partnerTokenAccount,
+              mint,
+              preInstructions,
+              tokenProgramId,
+            }) => {
               const tx = await this.program.methods
                 .claim()
                 .accounts({
