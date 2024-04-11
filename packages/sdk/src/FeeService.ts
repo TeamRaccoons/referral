@@ -1,13 +1,8 @@
 import {
-  modifyComputeUnitLimitIx,
-  modifyPriorityFeeIx,
-} from "@mercurial-finance/optimist";
-import {
   AddressLookupTableAccount,
   ComputeBudgetProgram,
   Connection,
   PublicKey,
-  Transaction,
   TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
@@ -128,7 +123,7 @@ class FeeServiceImpl implements FeeService {
 
     const referralReferenceFeeInMicroLamports =
       this.computePriceMicroLamportsFromFeeLamports(
-        marketReferenceFeeInLamports.referral,
+        marketReferenceFeeInLamports.loAndDCA,
         computeUnitLimit,
       );
 
