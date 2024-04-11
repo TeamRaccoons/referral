@@ -113,8 +113,8 @@ class FeeServiceImpl implements FeeService {
     return simulation.value.unitsConsumed;
   };
 
-  private addMarginErrorForComputeUnitLimit = (fee: number, margin: number) =>
-    Math.floor(fee * margin);
+  private addMarginErrorForComputeUnitLimit = (units: number, margin: number) =>
+    Math.floor(units * margin);
 
   private getReferralReferenceFeeInMicroLamports = async (
     computeUnitLimit: number,
@@ -123,7 +123,7 @@ class FeeServiceImpl implements FeeService {
 
     const referralReferenceFeeInMicroLamports =
       this.computePriceMicroLamportsFromFeeLamports(
-        marketReferenceFeeInLamports.loAndDCA,
+        marketReferenceFeeInLamports.referral,
         computeUnitLimit,
       );
 
