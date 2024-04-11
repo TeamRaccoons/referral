@@ -635,6 +635,7 @@ export class ReferralProvider {
             })
             .preInstructions(preInstructions)
             .transaction();
+          instructions.push(...tx.instructions);
 
           chunk += 1;
 
@@ -666,8 +667,6 @@ export class ReferralProvider {
             instructions = [];
 
             txs.push(new VersionedTransaction(messageV0));
-          } else {
-            instructions.push(...tx.instructions);
           }
         }
         return txs;
