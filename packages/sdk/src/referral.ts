@@ -538,7 +538,7 @@ export class ReferralProvider {
       instructions.unshift(ComputeBudgetProgram.setComputeUnitLimit({ units }));
     }
 
-    // Compile to Legacy Message
+    // Compile to V0 Message
     const blockhash = (await this.connection.getLatestBlockhash()).blockhash;
     const messageV0 = new TransactionMessage({
       payerKey: payerPubKey,
