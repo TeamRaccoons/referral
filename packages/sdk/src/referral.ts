@@ -435,7 +435,7 @@ export class ReferralProvider {
     payerPubKey,
     referralAccountPubKey,
     mint,
-  }: ClaimVariable): Promise<VersionedTransaction> {
+  }: ClaimVariable): Promise<Transaction> {
     const mintAccount = await this.connection.getAccountInfo(mint);
     if (!mintAccount) throw new Error("Invalid mint");
 
@@ -538,15 +538,15 @@ export class ReferralProvider {
       instructions.unshift(ComputeBudgetProgram.setComputeUnitLimit({ units }));
     }
 
-    // Compile to V0 Message
+    // Compile to Legacy Message
     const blockhash = (await this.connection.getLatestBlockhash()).blockhash;
-    const messageV0 = new TransactionMessage({
+    const legacyMessage = new TransactionMessage({
       payerKey: payerPubKey,
       instructions,
       recentBlockhash: blockhash,
-    }).compileToV0Message([lookupTableAccount]);
+    }).compileToLegacyMessage();
 
-    return new VersionedTransaction(messageV0);
+    return new Transaction(legacyMessage);
   }
 
   public async claimAll({
