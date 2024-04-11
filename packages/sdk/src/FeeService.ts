@@ -67,6 +67,7 @@ class FeeServiceImpl implements FeeService {
   // API
   // --------------------
   private getMarketReferenceFee = async (): Promise<MarketReferenceFee> => {
+    // TODO: To update the URL to `https://cache.jup.ag/reference-fees` once dependencies PR merged
     const data = (
       await fetch("https://cache.jup.ag/jup-claim-reference-fees")
     ).json() as unknown as MarketReferenceFee;
