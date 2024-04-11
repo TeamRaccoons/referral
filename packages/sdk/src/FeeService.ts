@@ -140,7 +140,7 @@ class FeeServiceImpl implements FeeService {
   // --------------------
   getOptimalComputeUnitLimitAndPrice: FeeService["getOptimalComputeUnitLimitAndPrice"] =
     async (payload) => {
-      // unit
+      // Unit
       const simulationUnits = await this.getSimulationUnits(payload);
       /**
        * Best practices to always add a margin error to the simulation units (10% ~ 20%)
@@ -149,9 +149,7 @@ class FeeServiceImpl implements FeeService {
       const simulationUnitsWithMarginError =
         this.addMarginErrorForComputeUnitLimit(simulationUnits, 1.2);
 
-      console.log(simulationUnits);
-
-      // price
+      // Price
       const referenceFeeInMicroLamports =
         await this.getReferralReferenceFeeInMicroLamports(simulationUnits);
 
