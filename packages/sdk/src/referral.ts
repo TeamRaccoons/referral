@@ -655,7 +655,6 @@ export class ReferralProvider {
                 ComputeBudgetProgram.setComputeUnitLimit({ units }),
               );
             }
-            instructions.push(...tx.instructions);
 
             // Compile to V0 Message
             const messageV0 = new TransactionMessage({
