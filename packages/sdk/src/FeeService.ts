@@ -2,11 +2,31 @@ import {
   modifyComputeUnitLimitIx,
   modifyPriorityFeeIx,
 } from "@mercurial-finance/optimist";
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import {
+  AddressLookupTableAccount,
+  ComputeBudgetProgram,
+  Connection,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
+
+import { RPC_URL } from "./constant";
 
 interface Fee {
+  /**
+   * @description medium
+   */
   m: number;
+  /**
+   * @description high
+   */
   h: number;
+  /**
+   * @description very high
+   */
   vh: number;
 }
 
@@ -15,26 +35,38 @@ interface MarketReferenceFee {
   jup: Fee;
   jup2: Fee;
   loAndDCA: number;
+  referral: number;
   perps: Fee;
   swapFee: number;
   lastUpdatedAt: number;
 }
 
+interface GetOptimalComputeUnitLimitAndPricePayload {
+  instructions: TransactionInstruction[];
+  payer: PublicKey;
+  lookupTables: AddressLookupTableAccount[];
+}
+
+interface GetOptimalComputeUnitLimitAndPriceResponse {
+  units: number;
+  microLamports: number;
+}
+
 interface FeeService {
-  modifyComputeUnitLimitAndPrice: (
-    tx: Transaction | VersionedTransaction,
-  ) => Promise<boolean>;
+  getOptimalComputeUnitLimitAndPrice: (
+    payload: GetOptimalComputeUnitLimitAndPricePayload,
+  ) => Promise<GetOptimalComputeUnitLimitAndPriceResponse>;
 }
 
 class FeeServiceImpl implements FeeService {
   // --------------------
   // Properties
   // --------------------
+  private connection: Connection;
 
-  // average `unitsConsumed` value from all transactions sent by `sendAllTransactions`
-  private readonly COMPUTE_UNIT_LIMIT = 400_000;
-
-  private readonly MINIMUM_FEE_IN_MICRO_LAMPORTS = 10_000;
+  constructor() {
+    this.connection = new Connection(RPC_URL);
+  }
 
   // --------------------
   // API
@@ -49,45 +81,91 @@ class FeeServiceImpl implements FeeService {
   // --------------------
   // Helper methods
   // --------------------
+
+  /**
+   *
+   * Code snippets from the Solana documentation
+   * @see https://solana.com/developers/guides/advanced/how-to-request-optimal-compute#how-to-request-compute-budget
+   */
+  private getSimulationUnits = async (
+    payload: GetOptimalComputeUnitLimitAndPricePayload,
+  ) => {
+    const { instructions, payer, lookupTables } = payload;
+
+    const testInstructions = [
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
+      ...instructions,
+    ];
+
+    const testVersionedTxn = new VersionedTransaction(
+      new TransactionMessage({
+        instructions: testInstructions,
+        payerKey: payer,
+        recentBlockhash: PublicKey.default.toString(),
+      }).compileToV0Message(lookupTables),
+    );
+
+    const simulation = await this.connection.simulateTransaction(
+      testVersionedTxn,
+      {
+        replaceRecentBlockhash: true,
+        sigVerify: false,
+      },
+    );
+    if (simulation.value.err) {
+      return undefined;
+    }
+    return simulation.value.unitsConsumed;
+  };
+
+  private addMarginErrorForComputeUnitLimit = (fee: number, margin: number) =>
+    Math.floor(fee * margin);
+
+  private getReferralReferenceFeeInMicroLamports = async (
+    computeUnitLimit: number,
+  ) => {
+    const marketReferenceFeeInLamports = await this.getMarketReferenceFee();
+
+    const referralReferenceFeeInMicroLamports =
+      this.computePriceMicroLamportsFromFeeLamports(
+        marketReferenceFeeInLamports.referral,
+        computeUnitLimit,
+      );
+
+    return referralReferenceFeeInMicroLamports;
+  };
+
   private computePriceMicroLamportsFromFeeLamports = (
     feeInLamports: number,
     computeUnitLimit: number,
   ) => Math.floor((feeInLamports * 1_000_000) / computeUnitLimit);
 
-  private getPriorityFeeInMicroLamports = async () => {
-    const marketReferenceFee = await this.getMarketReferenceFee();
-    const loAndDCAReferenceFeeInMicroLamports =
-      this.computePriceMicroLamportsFromFeeLamports(
-        marketReferenceFee.loAndDCA,
-        this.COMPUTE_UNIT_LIMIT,
-      );
-
-    const priorityFeeInMicroLamports = Math.min(
-      this.MINIMUM_FEE_IN_MICRO_LAMPORTS,
-      loAndDCAReferenceFeeInMicroLamports,
-    );
-
-    return priorityFeeInMicroLamports;
-  };
-
   // --------------------
   // Main methods
   // --------------------
-  modifyComputeUnitLimitAndPrice: FeeService["modifyComputeUnitLimitAndPrice"] =
-    async (tx) => {
-      const priorityFeeInMicroLamports =
-        await this.getPriorityFeeInMicroLamports();
+  getOptimalComputeUnitLimitAndPrice: FeeService["getOptimalComputeUnitLimitAndPrice"] =
+    async (payload) => {
+      // unit
+      const simulationUnits = await this.getSimulationUnits(payload);
+      /**
+       * Best practices to always add a margin error to the simulation units (10% ~ 20%)
+       * @see https://solana.com/developers/guides/advanced/how-to-request-optimal-compute#special-considerations
+       */
+      const simulationUnitsWithMarginError =
+        this.addMarginErrorForComputeUnitLimit(simulationUnits, 1.2);
 
-      const modifyUnitLimitResult = modifyComputeUnitLimitIx(
-        tx,
-        this.COMPUTE_UNIT_LIMIT,
-      );
-      const modifyModifyUnitPriceResult = modifyPriorityFeeIx(
-        tx,
-        priorityFeeInMicroLamports,
-      );
+      console.log(simulationUnits);
 
-      return modifyUnitLimitResult && modifyModifyUnitPriceResult;
+      // price
+      const referenceFeeInMicroLamports =
+        await this.getReferralReferenceFeeInMicroLamports(simulationUnits);
+
+      return {
+        // `computeUnitLimit`
+        units: simulationUnitsWithMarginError,
+        // `computeUnitPrice`
+        microLamports: referenceFeeInMicroLamports,
+      };
     };
 }
 

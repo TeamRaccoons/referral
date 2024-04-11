@@ -8,6 +8,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import {
+  ComputeBudgetProgram,
   Connection,
   GetProgramAccountsFilter,
   PublicKey,
@@ -499,7 +500,7 @@ export class ReferralProvider {
       preInstructions.push(ix);
     }
 
-    const transaction = await this.program.methods
+    return await this.program.methods
       .claim()
       .accounts({
         payer: payerPubKey,
@@ -515,9 +516,6 @@ export class ReferralProvider {
       })
       .preInstructions(preInstructions)
       .transaction();
-
-    await feeService.modifyComputeUnitLimitAndPrice(transaction);
-    return transaction;
   }
 
   public async claimAll({
@@ -641,9 +639,24 @@ export class ReferralProvider {
           chunk += 1;
 
           if (chunk === 4) {
-            await feeService.modifyComputeUnitLimitAndPrice(tx);
+            // Priority Fee Instructions
+            const { units, microLamports } =
+              await feeService.getOptimalComputeUnitLimitAndPrice({
+                instructions,
+                payer: payerPubKey,
+                lookupTables: [lookupTableAccount],
+              });
+            instructions.unshift(
+              ComputeBudgetProgram.setComputeUnitPrice({ microLamports }),
+            );
+            if (units) {
+              instructions.unshift(
+                ComputeBudgetProgram.setComputeUnitLimit({ units }),
+              );
+            }
             instructions.push(...tx.instructions);
 
+            // Compile to V0 Message
             const messageV0 = new TransactionMessage({
               payerKey: payerPubKey,
               instructions,
@@ -784,14 +797,28 @@ export class ReferralProvider {
                 .preInstructions(preInstructions)
                 .transaction();
 
-              if (index === chunkParams.length - 1) {
-                await feeService.modifyComputeUnitLimitAndPrice(tx);
-              }
               instructions.push(...tx.instructions);
             },
           ),
         );
 
+        // Priority Fee Instructions
+        const { units, microLamports } =
+          await feeService.getOptimalComputeUnitLimitAndPrice({
+            instructions,
+            payer: payerPubKey,
+            lookupTables: [lookupTableAccount],
+          });
+        instructions.unshift(
+          ComputeBudgetProgram.setComputeUnitPrice({ microLamports }),
+        );
+        if (units) {
+          instructions.unshift(
+            ComputeBudgetProgram.setComputeUnitLimit({ units }),
+          );
+        }
+
+        // Compile to V0 Message
         const messageV0 = new TransactionMessage({
           payerKey: payerPubKey,
           instructions,
