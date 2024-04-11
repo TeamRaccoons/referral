@@ -152,7 +152,9 @@ class FeeServiceImpl implements FeeService {
 
       // Price
       const referenceFeeInMicroLamports =
-        await this.getReferralReferenceFeeInMicroLamports(simulationUnits);
+        await this.getReferralReferenceFeeInMicroLamports(
+          simulationUnitsWithMarginError,
+        );
 
       return {
         // `computeUnitLimit`
