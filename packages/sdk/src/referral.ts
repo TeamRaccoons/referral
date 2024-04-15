@@ -8,6 +8,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import {
+  ComputeBudgetProgram,
   Connection,
   GetProgramAccountsFilter,
   PublicKey,
@@ -20,6 +21,7 @@ import chunk from "lodash/chunk";
 
 import { chunkedGetMultipleAccountInfos } from "./chunks";
 import { PROGRAM_ID } from "./constant";
+import { feeService } from "./FeeService";
 import { IDL, Referral } from "./idl";
 import { getOrCreateATAInstruction } from "./utils";
 
@@ -433,7 +435,7 @@ export class ReferralProvider {
     payerPubKey,
     referralAccountPubKey,
     mint,
-  }: ClaimVariable): Promise<Transaction> {
+  }: ClaimVariable): Promise<VersionedTransaction> {
     const mintAccount = await this.connection.getAccountInfo(mint);
     if (!mintAccount) throw new Error("Invalid mint");
 
@@ -498,7 +500,7 @@ export class ReferralProvider {
       preInstructions.push(ix);
     }
 
-    return await this.program.methods
+    const transaction = await this.program.methods
       .claim()
       .accounts({
         payer: payerPubKey,
@@ -514,6 +516,37 @@ export class ReferralProvider {
       })
       .preInstructions(preInstructions)
       .transaction();
+    const instructions = transaction.instructions;
+
+    // Get Address Lookup Table
+    const addressLookupTable = await this.connection.getAddressLookupTable(
+      new PublicKey("GBzQG2iFrPwXjGtCnwNt9S5eHd8xAR8jUMt3QDJpnjud"),
+    );
+    const lookupTableAccount = addressLookupTable.value;
+
+    // Priority Fee Instructions
+    const { units, microLamports } =
+      await feeService.getOptimalComputeUnitLimitAndPrice({
+        instructions: transaction.instructions,
+        payer: payerPubKey,
+        lookupTables: [lookupTableAccount],
+      });
+    instructions.unshift(
+      ComputeBudgetProgram.setComputeUnitPrice({ microLamports }),
+    );
+    if (units) {
+      instructions.unshift(ComputeBudgetProgram.setComputeUnitLimit({ units }));
+    }
+
+    // Compile to V0 Message
+    const blockhash = (await this.connection.getLatestBlockhash()).blockhash;
+    const messageV0 = new TransactionMessage({
+      payerKey: payerPubKey,
+      instructions,
+      recentBlockhash: blockhash,
+    }).compileToV0Message();
+
+    return new VersionedTransaction(messageV0);
   }
 
   public async claimAll({
@@ -637,7 +670,24 @@ export class ReferralProvider {
 
           chunk += 1;
 
-          if (chunk === 5) {
+          if (chunk === 4) {
+            // Priority Fee Instructions
+            const { units, microLamports } =
+              await feeService.getOptimalComputeUnitLimitAndPrice({
+                instructions,
+                payer: payerPubKey,
+                lookupTables: [lookupTableAccount],
+              });
+            instructions.unshift(
+              ComputeBudgetProgram.setComputeUnitPrice({ microLamports }),
+            );
+            if (units) {
+              instructions.unshift(
+                ComputeBudgetProgram.setComputeUnitLimit({ units }),
+              );
+            }
+
+            // Compile to V0 Message
             const messageV0 = new TransactionMessage({
               payerKey: payerPubKey,
               instructions,
@@ -740,49 +790,72 @@ export class ReferralProvider {
       }),
     );
 
-    const txs: VersionedTransaction[] = [];
-    const chunkedInstructions = chunk(claimInstructionParams, 5);
+    const chunkedInstructions = chunk(claimInstructionParams, 4);
 
-    chunkedInstructions.forEach(async (chunkParams) => {
-      let instructions: TransactionInstruction[] = [];
+    const txs: VersionedTransaction[] = await Promise.all(
+      chunkedInstructions.map(async (chunkParams) => {
+        let instructions: TransactionInstruction[] = [];
 
-      for (const {
-        referralTokenAccountPubKey,
-        projectAdminTokenAccount,
-        partnerTokenAccount,
-        mint,
-        preInstructions,
-        tokenProgramId,
-      } of chunkParams) {
-        const tx = await this.program.methods
-          .claim()
-          .accounts({
+        await Promise.all(
+          chunkParams.map(
+            async ({
+              referralTokenAccountPubKey,
+              projectAdminTokenAccount,
+              partnerTokenAccount,
+              mint,
+              preInstructions,
+              tokenProgramId,
+            }) => {
+              const tx = await this.program.methods
+                .claim()
+                .accounts({
+                  payer: payerPubKey,
+                  project: referralAccount.project,
+                  admin: project.admin,
+                  projectAdminTokenAccount,
+                  referralAccount: referralAccountPubKey,
+                  referralTokenAccount: referralTokenAccountPubKey,
+                  partner: referralAccount.partner,
+                  partnerTokenAccount: partnerTokenAccount,
+                  mint,
+                  tokenProgram: tokenProgramId,
+                })
+                .preInstructions(preInstructions)
+                .transaction();
+
+              instructions.push(...tx.instructions);
+            },
+          ),
+        );
+
+        // Priority Fee Instructions
+        const { units, microLamports } =
+          await feeService.getOptimalComputeUnitLimitAndPrice({
+            instructions,
             payer: payerPubKey,
-            project: referralAccount.project,
-            admin: project.admin,
-            projectAdminTokenAccount,
-            referralAccount: referralAccountPubKey,
-            referralTokenAccount: referralTokenAccountPubKey,
-            partner: referralAccount.partner,
-            partnerTokenAccount: partnerTokenAccount,
-            mint,
-            tokenProgram: tokenProgramId,
-          })
-          .preInstructions(preInstructions)
-          .transaction();
-        instructions.push(...tx.instructions);
-      }
+            lookupTables: [lookupTableAccount],
+          });
+        instructions.unshift(
+          ComputeBudgetProgram.setComputeUnitPrice({ microLamports }),
+        );
+        if (units) {
+          instructions.unshift(
+            ComputeBudgetProgram.setComputeUnitLimit({ units }),
+          );
+        }
 
-      const messageV0 = new TransactionMessage({
-        payerKey: payerPubKey,
-        instructions,
-        recentBlockhash: blockhash,
-      }).compileToV0Message([lookupTableAccount]);
+        // Compile to V0 Message
+        const messageV0 = new TransactionMessage({
+          payerKey: payerPubKey,
+          instructions,
+          recentBlockhash: blockhash,
+        }).compileToV0Message([lookupTableAccount]);
 
-      instructions = [];
+        instructions = [];
 
-      txs.push(new VersionedTransaction(messageV0));
-    });
+        return new VersionedTransaction(messageV0);
+      }),
+    );
 
     return txs;
   }

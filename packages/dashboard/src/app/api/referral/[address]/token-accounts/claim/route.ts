@@ -39,16 +39,9 @@ export async function POST(
         commitment: "confirmed",
       }),
     ]);
-    tx.recentBlockhash = blockhash;
-    tx.feePayer = feePayerPubkey;
 
     return NextResponse.json({
-      tx: Buffer.from(
-        tx.serialize({
-          requireAllSignatures: false,
-          verifySignatures: false,
-        }),
-      ).toString("base64"),
+      tx: Buffer.from(tx.serialize()).toString("base64"),
     });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 400 });
