@@ -10,13 +10,12 @@ export const runtime = "edge";
 const bodyShape = z.object({
   referralAccount: z.string(),
   feePayer: z.string(),
+  withdrawalableTokenAddress: z.array(z.string()),
 });
 
 export async function POST(
   request: Request,
-  {
-    params: { address, withdrawalableTokenAddress },
-  }: { params: { address: string; withdrawalableTokenAddress: PublicKey[] } },
+  { params: { address } }: { params: { address: string } },
 ) {
   try {
     const connection = new Connection(RPC_URL);
@@ -24,15 +23,20 @@ export async function POST(
 
     const body = await request.json();
 
-    const { referralAccount, feePayer } = bodyShape.parse({
-      ...body,
-      referralAccount: address,
-    });
+    const { referralAccount, feePayer, withdrawalableTokenAddress } =
+      bodyShape.parse({
+        ...body,
+        referralAccount: address,
+      });
+
+    const withdrawalableTokenAddressPubkeys = withdrawalableTokenAddress.map(
+      (addr) => new PublicKey(addr),
+    );
 
     let feePayerPubkey = new PublicKey(feePayer);
     const txsCompiled = await referralProvider.claimPartially({
       payerPubKey: feePayerPubkey,
-      withdrawalableTokenAddress,
+      withdrawalableTokenAddress: withdrawalableTokenAddressPubkeys,
       referralAccountPubKey: new PublicKey(referralAccount),
     });
 

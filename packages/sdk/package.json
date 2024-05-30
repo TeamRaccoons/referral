@@ -1,6 +1,6 @@
 {
   "name": "@jup-ag/referral-sdk",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "source": "./src/index.ts",
