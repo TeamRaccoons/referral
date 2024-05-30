@@ -82,6 +82,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ClaimAllResponse"
+  /api/referral/{referralPubkey}/claim-partially:
+    post:
+      summary: "Claim a specific set of token accounts for a specific referral"
+      description: "Claims a specific set of token accounts for a referral account."
+      parameters:
+        - $ref: "#/components/parameters/ReferralPubkey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimPartiallyRequestBody"
+      responses:
+        200:
+          description: "Successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaimPartiallyResponse"
 
 components:
   parameters:
@@ -119,6 +138,22 @@ components:
         feePayer:
           type: string
     ClaimAllResponse:
+      type: object
+      properties:
+        txs:
+          type: array
+          items:
+            type: string
+    ClaimPartiallyRequestBody:
+      type: object
+      properties:
+        feePayer:
+          type: string
+        withdrawalableTokenAddress:
+          type: array
+          items:
+            type: string
+    ClaimPartiallyResponse:
       type: object
       properties:
         txs:
