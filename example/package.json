@@ -5,7 +5,8 @@
   "scripts": {
     "createReferralAccount": "ts-node src/createReferralAccount.ts",
     "createReferralTokenAccount": "ts-node src/createReferralTokenAccount.ts",
-    "claimAll": "ts-node src/claimAll.ts"
+    "claimAll": "ts-node src/claimAll.ts",
+    "claimPartially": "ts-node src/claimPartially.ts"
   },
   "devDependencies": {
     "@types/node": "20.4.2",
