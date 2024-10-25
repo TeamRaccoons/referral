@@ -30,6 +30,7 @@ export interface InitializeProjectVariable {
   basePubKey: PublicKey;
   name: string;
   defaultShareBps: number;
+  payerPubKey: PublicKey;
 }
 
 export interface TransferProjectVariable {
@@ -295,6 +296,7 @@ export class ReferralProvider {
     adminPubKey,
     name,
     defaultShareBps,
+    payerPubKey,
   }: InitializeProjectVariable): Promise<Transaction> {
     const [projectPubKey] = PublicKey.findProgramAddressSync(
       [Buffer.from("project"), basePubKey.toBuffer()],
@@ -307,6 +309,7 @@ export class ReferralProvider {
         admin: adminPubKey,
         project: projectPubKey,
         base: basePubKey,
+        payer: payerPubKey,
       })
       .transaction();
   }
