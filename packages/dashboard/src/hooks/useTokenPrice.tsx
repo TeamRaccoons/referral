@@ -23,7 +23,7 @@ export const useFetchTokenPrices = (tokenMints: string[]) => {
         queryKey: [TOKEN_PRICES_KEY, ...tokens],
         queryFn: async () => {
           const response = await fetch(
-            `https://price.jup.ag/v4/price?ids=${tokens.join(",")}`,
+            `https://api.jup.ag/price/v2?ids=${tokens.join(",")}`,
           );
           const data: PriceAPIResult = await response.json();
           return data.data;
