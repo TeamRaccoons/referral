@@ -87,6 +87,8 @@ const Dashboard: React.FunctionComponent<IDashboardProps> = ({
     enabled: Boolean(publicKey),
   });
 
+  console.log({ referrerAccounts, isLoading });
+
   if (!connected) {
     return (
       <div className="m-auto flex max-w-[350px] flex-col items-center text-center">
@@ -220,6 +222,7 @@ const TokenTable: React.FC<
   Props & { referralPubkey: PublicKey; referralAccount: ReferralAccount }
 > = ({ referralProvider, referralPubkey, referralAccount }) => {
   const tokenInfosMap = useTokenInfos();
+
   const router = useRouter();
 
   const topTokens = useTopTokens();
@@ -249,6 +252,7 @@ const TokenTable: React.FC<
     const { tokenAccounts, token2022Accounts } = referralTokens.data;
     const mintToTokeninfoMap = tokenInfosMap.data.tokenInfoMap;
 
+    console.log({ tokenAccounts, token2022Accounts, tokenInfosMap });
     return tokenAccounts
       .concat(token2022Accounts)
       .map(({ account, pubkey }) => {

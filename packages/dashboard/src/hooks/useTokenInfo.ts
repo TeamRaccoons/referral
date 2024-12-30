@@ -17,14 +17,11 @@ export const useTokenInfos = () =>
     queryFn: async () => {
       async function fetchJupiterTokens() {
         const tokenInfos: TokenInfo[] = await (
-          await fetch("https://token.jup.ag/strict")
+          await fetch("https://tokens.jup.ag/tokens?tags=verified")
         ).json();
 
         const tokenInfoMap = tokenInfos.reduce((acc, tokenInfo) => {
-          if (tokenInfo.chainId === 101) {
-            return acc.set(tokenInfo.address, tokenInfo);
-          }
-          return acc;
+          return acc.set(tokenInfo.address, tokenInfo);
         }, new Map<string, TokenInfo>());
 
         return { tokenInfoMap, tokenInfos };
