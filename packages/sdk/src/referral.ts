@@ -284,8 +284,6 @@ export class ReferralProvider {
       }
     }
 
-    console.log({ tokenAccounts, token2022Accounts });
-
     return {
       tokenAccounts,
       token2022Accounts,
