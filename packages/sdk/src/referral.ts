@@ -246,7 +246,7 @@ export class ReferralProvider {
       } else if (strategy.type === "token-list") {
         const tokens = (
           await (
-            await fetch("https://tokens.jup.ag/tokens?tags=verified")
+            await fetch("https://tokens.jup.ag/tokens?tags=verified,lst")
           ).json()
         ).map(({ address }) => address) as string[];
         return tokens;

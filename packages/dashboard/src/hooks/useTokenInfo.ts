@@ -17,7 +17,7 @@ export const useTokenInfos = () =>
     queryFn: async () => {
       async function fetchJupiterTokens() {
         const tokenInfos: TokenInfo[] = await (
-          await fetch("https://tokens.jup.ag/tokens?tags=verified")
+          await fetch("https://tokens.jup.ag/tokens?tags=verified,lst")
         ).json();
 
         const tokenInfoMap = tokenInfos.reduce((acc, tokenInfo) => {
