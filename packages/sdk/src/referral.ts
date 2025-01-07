@@ -99,7 +99,7 @@ export const useReferral = (connection: Connection) => {
 
 export type GetReferralTokenAccountsStrategy =
   | { type: "top-tokens"; topN: number }
-  | { type: "token-list"; tokenList: "all" | "strict" };
+  | { type: "token-list" };
 
 export class ReferralProvider {
   private program: Program<Referral>;
@@ -246,7 +246,7 @@ export class ReferralProvider {
       } else if (strategy.type === "token-list") {
         const tokens = (
           await (
-            await fetch(`https://token.jup.ag/${strategy.tokenList}`)
+            await fetch("https://tokens.jup.ag/tokens?tags=verified,lst")
           ).json()
         ).map(({ address }) => address) as string[];
         return tokens;

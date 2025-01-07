@@ -220,6 +220,7 @@ const TokenTable: React.FC<
   Props & { referralPubkey: PublicKey; referralAccount: ReferralAccount }
 > = ({ referralProvider, referralPubkey, referralAccount }) => {
   const tokenInfosMap = useTokenInfos();
+
   const router = useRouter();
 
   const topTokens = useTopTokens();

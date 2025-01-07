@@ -11,7 +11,7 @@ const referralPubKey = new PublicKey(process.env.RERERRAL_PUBKEY || ""); // Refe
   // This method will return an array of withdrawable token addresses.
   const referralTokens = await provider.getReferralTokenAccountsWithStrategy(
     referralPubKey.toString(),
-    { type: "token-list", tokenList: "strict" },
+    { type: "token-list" },
   );
 
   const withdrawalableTokenAddress = [
