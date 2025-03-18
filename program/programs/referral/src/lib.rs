@@ -14,6 +14,7 @@ declare_id!("9vhgK3i91cTwTHQag85zoA3PmJUTfgvgYFc9AJPRNhGn");
 declare_id!("REFER4ZgmyYx9c6He5XfaTMiGfdLwRnkV4RPp9t9iF3");
 
 pub const PROJECT_SEED: &[u8] = b"project";
+pub const PROJECT_V2_SEED: &[u8] = b"project_v2";
 pub const PROJECT_AUTHORITY_SEED: &[u8] = b"project_authority";
 pub const REFERRAL_SEED: &[u8] = b"referral";
 pub const REFERRAL_ATA_SEED: &[u8] = b"referral_ata";
@@ -97,6 +98,20 @@ pub mod referral {
     pub fn close_referral_token_account(ctx: Context<CloseReferralTokenAccount>) -> Result<()> {
         instructions::close_referral_token_account(ctx)
     }
+
+    pub fn initialize_project_token_account(
+        ctx: Context<InitializeProjectTokenAccount>,
+        params: InitializeProjectTokenAccountParams,
+    ) -> Result<()> {
+        instructions::initialize_project_token_account(ctx, params)
+    }
+
+    pub fn initialize_project_v2(
+        ctx: Context<InitializeProjectV2>,
+        params: InitializeProjectParams,
+    ) -> Result<()> {
+        instructions::initialize_project_v2(ctx, params)
+    }
 }
 
 #[derive(Accounts)]
@@ -112,6 +127,17 @@ pub struct Project {
 
 impl Project {
     const LEN: usize = 8 + 32 + 32 + MAX_PROJECT_NAME_LENGTH + 12;
+}
+
+#[account]
+pub struct ProjectV2 {
+    admin: Pubkey,
+    name: String,
+    default_share_bps: u16,
+}
+
+impl ProjectV2 {
+    const LEN: usize = 8 + 32 + MAX_PROJECT_NAME_LENGTH + 12;
 }
 
 #[account]

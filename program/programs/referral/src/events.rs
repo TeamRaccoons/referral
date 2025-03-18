@@ -39,6 +39,14 @@ pub struct InitializeReferralTokenAccountEvent {
 }
 
 #[event]
+pub struct InitializeProjectTokenAccountEvent {
+    pub project: Pubkey,
+    pub admin: Pubkey,
+    pub project_token_account: Pubkey,
+    pub mint: Pubkey,
+}
+
+#[event]
 pub struct ClaimEvent {
     pub project: Pubkey,
     pub project_admin_token_account: Pubkey,
