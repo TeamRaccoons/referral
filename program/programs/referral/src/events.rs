@@ -47,6 +47,18 @@ pub struct InitializeProjectTokenAccountEvent {
 }
 
 #[event]
+pub struct WithdrawProjectFeesEvent {
+    pub project: Pubkey,
+    pub mint: Pubkey,
+    pub project_token_account: Pubkey,
+    pub platform_token_account: Pubkey,
+    pub project_admin_token_account: Pubkey,
+    pub platform_amount: u64,
+    pub project_admin_amount: u64,
+    pub total_amount: u64,
+}
+
+#[event]
 pub struct ClaimEvent {
     pub project: Pubkey,
     pub project_admin_token_account: Pubkey,

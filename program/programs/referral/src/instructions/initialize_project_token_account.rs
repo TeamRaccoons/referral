@@ -5,11 +5,11 @@ use anchor_spl::{
     token_interface::{Mint, TokenInterface},
 };
 
-use crate::{events::InitializeProjectTokenAccountEvent, ProjectV2, PROJECT_V2_SEED};
+use crate::{events::InitializeProjectTokenAccountEvent, Project, PROJECT_SEED};
 
-pub fn initialize_project_token_account(
-    ctx: Context<InitializeProjectTokenAccount>,
-    _params: InitializeProjectTokenAccountParams,
+pub fn initialize_project_ata(
+    ctx: Context<InitializeProjectAta>,
+    _params: InitializeProjectAtaParams,
 ) -> Result<()> {
     emit!(InitializeProjectTokenAccountEvent {
         project: ctx.accounts.project.key(),
@@ -22,15 +22,15 @@ pub fn initialize_project_token_account(
 }
 
 #[derive(Accounts)]
-pub struct InitializeProjectTokenAccount<'info> {
+pub struct InitializeProjectAta<'info> {
     #[account(mut)]
     payer: Signer<'info>,
     admin: SystemAccount<'info>,
     #[account(
-        seeds = [PROJECT_V2_SEED, admin.key().as_ref()],
+        seeds = [PROJECT_SEED, project.base.key().as_ref()],
         bump,
     )]
-    project: Account<'info, ProjectV2>,
+    project: Account<'info, Project>,
     #[account(
         init,
         payer=payer,
@@ -45,4 +45,4 @@ pub struct InitializeProjectTokenAccount<'info> {
 }
 
 #[derive(AnchorDeserialize, AnchorSerialize, Debug, Clone, Default)]
-pub struct InitializeProjectTokenAccountParams {}
+pub struct InitializeProjectAtaParams {}

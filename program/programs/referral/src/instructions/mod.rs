@@ -10,14 +10,13 @@ pub mod transfer_referral_account;
 pub mod update_project;
 pub mod update_referral_account;
 pub mod withdraw_from_project;
-pub mod initialize_project_v2;
 pub mod initialize_project_token_account;
+pub mod withdraw_project_fees;
 
 pub use claim::*;
 pub use close_referral_token_account::*;
 pub use create_admin_token_account::*;
 pub use initialize_project::*;
-pub use initialize_project_v2::*;
 pub use initialize_referral_account::*;
 pub use initialize_referral_account_with_name::*;
 pub use initialize_referral_token_account::*;

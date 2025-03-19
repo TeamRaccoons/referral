@@ -19,6 +19,10 @@ pub const PROJECT_AUTHORITY_SEED: &[u8] = b"project_authority";
 pub const REFERRAL_SEED: &[u8] = b"referral";
 pub const REFERRAL_ATA_SEED: &[u8] = b"referral_ata";
 pub const AUTHORITY_SEED: &[u8] = b"authority";
+pub const PLATFORM_FEE_BPS: u16 = 2000; 
+pub const BPS_DENOMINATOR: u128 = 10_000;
+// TODO: Replace with actual pubkey
+pub const PLATFORM_ADMIN: Pubkey = pubkey!("11111111111111111111111111111111"); 
 
 #[program]
 pub mod referral {
@@ -99,18 +103,11 @@ pub mod referral {
         instructions::close_referral_token_account(ctx)
     }
 
-    pub fn initialize_project_token_account(
-        ctx: Context<InitializeProjectTokenAccount>,
-        params: InitializeProjectTokenAccountParams,
+    pub fn initialize_project_ata(
+        ctx: Context<InitializeProjectAta>,
+        params: InitializeProjectAtaParams,
     ) -> Result<()> {
-        instructions::initialize_project_token_account(ctx, params)
-    }
-
-    pub fn initialize_project_v2(
-        ctx: Context<InitializeProjectV2>,
-        params: InitializeProjectParams,
-    ) -> Result<()> {
-        instructions::initialize_project_v2(ctx, params)
+        instructions::initialize_project_ata(ctx, params)
     }
 }
 
