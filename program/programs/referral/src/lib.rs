@@ -19,10 +19,10 @@ pub const PROJECT_AUTHORITY_SEED: &[u8] = b"project_authority";
 pub const REFERRAL_SEED: &[u8] = b"referral";
 pub const REFERRAL_ATA_SEED: &[u8] = b"referral_ata";
 pub const AUTHORITY_SEED: &[u8] = b"authority";
-pub const PLATFORM_FEE_BPS: u16 = 2000; 
+pub const PLATFORM_FEE_BPS: u16 = 2000;
 pub const BPS_DENOMINATOR: u128 = 10_000;
 // TODO: Replace with actual pubkey
-pub const PLATFORM_ADMIN: Pubkey = pubkey!("11111111111111111111111111111111"); 
+pub const PLATFORM_ADMIN: Pubkey = pubkey!("11111111111111111111111111111111");
 
 #[program]
 pub mod referral {
@@ -109,6 +109,10 @@ pub mod referral {
     ) -> Result<()> {
         instructions::initialize_project_ata(ctx, params)
     }
+
+    pub fn withdraw_project_fees(ctx: Context<WithdrawProjectFees>) -> Result<()> {
+        instructions::withdraw_project_fees(ctx)
+    }
 }
 
 #[derive(Accounts)]
@@ -124,17 +128,6 @@ pub struct Project {
 
 impl Project {
     const LEN: usize = 8 + 32 + 32 + MAX_PROJECT_NAME_LENGTH + 12;
-}
-
-#[account]
-pub struct ProjectV2 {
-    admin: Pubkey,
-    name: String,
-    default_share_bps: u16,
-}
-
-impl ProjectV2 {
-    const LEN: usize = 8 + 32 + MAX_PROJECT_NAME_LENGTH + 12;
 }
 
 #[account]

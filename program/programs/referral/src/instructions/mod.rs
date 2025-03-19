@@ -26,3 +26,4 @@ pub use update_project::*;
 pub use update_referral_account::*;
 pub use withdraw_from_project::*;
 pub use initialize_project_token_account::*;
+pub use withdraw_project_fees::*;
