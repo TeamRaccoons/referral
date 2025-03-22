@@ -1,5 +1,6 @@
 use crate::{
-    events::ClaimEvent, ProgramErrorCode, Project, ReferralAccount, PROJECT_SEED, REFERRAL_ATA_SEED,
+    events::ClaimEvent, ProgramErrorCode, Project, ReferralAccount, PROJECT_SEED,
+    REFERRAL_ATA_SEED, REFERRAL_SEED,
 };
 use anchor_lang::prelude::*;
 use anchor_spl::{
@@ -9,10 +10,11 @@ use anchor_spl::{
 
 const DENOMINATOR: u128 = 10_000;
 
-pub fn claim(ctx: Context<Claim>) -> Result<()> {
+pub fn claim_v2(ctx: Context<ClaimV2>) -> Result<()> {
     let accounts = &ctx.accounts;
-
     let token_account_balance = accounts.referral_token_account.amount;
+
+    // Dependent on the project share bps, calculate the referral amount.
     let referral_amount: u64 = u128::from(token_account_balance)
         .checked_mul(u128::from(accounts.referral_account.share_bps))
         .ok_or(ProgramErrorCode::InvalidCalculation)?
@@ -21,11 +23,18 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
         .try_into()
         .unwrap();
 
+    // Calculate the project amount.
     let project_amount = token_account_balance.checked_sub(referral_amount).unwrap();
     let mint = &ctx.accounts.mint;
 
-    // CHECK: There are no seeds for the referral account - so we sign with empty seeds??
-    let signer_seeds: &[&[&[u8]]] = &[];
+    let bump = ctx.bumps.referral_token_account;
+    let project_key = accounts.project.key();
+    let signer_seeds: &[&[&[u8]]] = &[&[
+        REFERRAL_SEED,
+        project_key.as_ref(),
+        accounts.referral_account.name.as_ref().unwrap().as_bytes(),
+        &[bump],
+    ]];
 
     if referral_amount > 0 {
         transfer_checked(
@@ -35,7 +44,7 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
                     from: accounts.referral_token_account.to_account_info(),
                     mint: accounts.mint.to_account_info(),
                     to: accounts.partner_token_account.to_account_info(),
-                    authority: accounts.project.to_account_info(),
+                    authority: accounts.referral_account.to_account_info(),
                 },
                 signer_seeds,
             ),
@@ -52,7 +61,7 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
                     from: accounts.referral_token_account.to_account_info(),
                     mint: accounts.mint.to_account_info(),
                     to: accounts.project_admin_token_account.to_account_info(),
-                    authority: accounts.project.to_account_info(),
+                    authority: accounts.referral_account.to_account_info(),
                 },
                 signer_seeds,
             ),
@@ -76,7 +85,7 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
 }
 
 #[derive(Accounts)]
-pub struct Claim<'info> {
+pub struct ClaimV2<'info> {
     #[account(mut)]
     payer: Signer<'info>,
     #[account(
@@ -95,7 +104,10 @@ pub struct Claim<'info> {
     project_admin_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(
         has_one = project,
-        has_one = partner
+        has_one = partner,
+        constraint = referral_account.name.is_some(),
+        seeds = [REFERRAL_SEED, project.key().as_ref(), referral_account.name.as_ref().unwrap().as_bytes()],
+        bump
     )]
     referral_account: Account<'info, ReferralAccount>,
     #[account(
@@ -103,7 +115,7 @@ pub struct Claim<'info> {
         seeds = [REFERRAL_ATA_SEED, referral_account.key().as_ref(), mint.key().as_ref()],
         bump,
         token::mint = mint,
-        token::authority = project
+        token::authority = referral_account
     )]
     referral_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     partner: SystemAccount<'info>,
