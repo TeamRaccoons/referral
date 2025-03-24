@@ -3,10 +3,7 @@ use crate::{
     REFERRAL_ATA_SEED, REFERRAL_SEED,
 };
 use anchor_lang::prelude::*;
-use anchor_spl::{
-    associated_token::AssociatedToken,
-    token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
-};
+use anchor_spl::token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked};
 
 const DENOMINATOR: u128 = 10_000;
 
@@ -27,7 +24,7 @@ pub fn claim_v2(ctx: Context<ClaimV2>) -> Result<()> {
     let project_amount = token_account_balance.checked_sub(referral_amount).unwrap();
     let mint = &ctx.accounts.mint;
 
-    let bump = ctx.bumps.referral_token_account;
+    let bump = ctx.bumps.referral_account;
     let project_key = accounts.project.key();
     let signer_seeds: &[&[&[u8]]] = &[&[
         REFERRAL_SEED,
@@ -127,7 +124,6 @@ pub struct ClaimV2<'info> {
     )]
     partner_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     mint: Box<InterfaceAccount<'info, Mint>>,
-    associated_token_program: Program<'info, AssociatedToken>,
     system_program: Program<'info, System>,
     token_program: Interface<'info, TokenInterface>,
 }
