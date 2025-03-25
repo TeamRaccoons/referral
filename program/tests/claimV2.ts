@@ -11,7 +11,8 @@ import {
     fundTokenAccount,
     getAccountBalance,
 } from "./helpers/helpers";
-import { ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 
 describe("program", () => {
     const provider = anchor.AnchorProvider.env();
@@ -46,9 +47,7 @@ describe("program", () => {
                 // Changed from referralAccountKeypair to referralAccountPubkey (PDA)
                 let referralAccountPubkey: anchor.web3.PublicKey;
                 let projectName = "Referral";
-                let projectAdminTokenAccount: anchor.web3.PublicKey;
                 let referralTokenAccount: anchor.web3.PublicKey;
-                let partnerTokenAccount: anchor.web3.PublicKey;
                 let token: anchor.web3.PublicKey;
                 let referralAmount = 1e8;
                 let defaultShareBps = 2000;
@@ -105,19 +104,6 @@ describe("program", () => {
                         .rpc();
 
                     token = await createTokenMint(tokenProgram, provider);
-                    projectAdminTokenAccount = await createTokenAccount(
-                        token,
-                        tokenProgram.programId,
-                        admin.payer.publicKey,
-                        provider,
-                    );
-                    partnerTokenAccount = await createTokenAccount(
-                        token,
-                        tokenProgram.programId,
-                        partner.publicKey,
-                        provider,
-                    );
-
                     const [referralTokenAccountProgramAddress] =
                         anchor.web3.PublicKey.findProgramAddressSync(
                             [
@@ -158,18 +144,19 @@ describe("program", () => {
                         referralTokenAccount,
                         provider,
                     );
-                    expect(referralTokenAccountBalance).to.equal(referralAmount);
-                    let projectAdminTokenAccountBalance = await getAccountBalance(
-                        projectAdminTokenAccount,
-                        provider,
-                    );
-                    expect(projectAdminTokenAccountBalance).to.equal(0);
-                    let partnerTokenAccountBalance = await getAccountBalance(
-                        partnerTokenAccount,
-                        provider,
-                    );
-                    expect(partnerTokenAccountBalance).to.equal(0);
 
+                    let projectAdminTokenAccount = getAssociatedTokenAddressSync(
+                        token,
+                        admin.payer.publicKey,
+                        false,
+                        tokenProgram.programId,
+                    );
+                    let partnerTokenAccount = getAssociatedTokenAddressSync(
+                        token,
+                        partner.publicKey,
+                        false,
+                        tokenProgram.programId,
+                    );
                     console.log("Claiming");
                     await program.methods
                         .claimV2()
@@ -185,6 +172,7 @@ describe("program", () => {
                             mint: token,
                             tokenProgram: tokenProgram.programId,
                             systemProgram: anchor.web3.SystemProgram.programId,
+                            associatedTokenProgram: ASSOCIATED_PROGRAM_ID
                         })
                         .signers([admin.payer])
                         .rpc();
@@ -195,14 +183,14 @@ describe("program", () => {
                         provider,
                     );
                     expect(referralTokenAccountBalance).to.equal(0);
-                    projectAdminTokenAccountBalance = await getAccountBalance(
+                    let projectAdminTokenAccountBalance = await getAccountBalance(
                         projectAdminTokenAccount,
                         provider,
                     );
                     expect(projectAdminTokenAccountBalance).to.equal(
                         (referralAmount * (10000 - defaultShareBps)) / 10000,
                     );
-                    partnerTokenAccountBalance = await getAccountBalance(
+                    let partnerTokenAccountBalance = await getAccountBalance(
                         partnerTokenAccount,
                         provider,
                     );
@@ -213,6 +201,13 @@ describe("program", () => {
 
                 it("raised if project admin token account is wrong", async () => {
                     try {
+                        let partnerTokenAccount = await createTokenAccount(
+                            token,
+                            tokenProgram.programId,
+                            partner.publicKey,
+                            provider,
+                        );
+
                         await program.methods
                             .claimV2() // Changed to V2 method
                             .accountsStrict({
@@ -227,6 +222,7 @@ describe("program", () => {
                                 mint: token,
                                 tokenProgram: tokenProgram.programId,
                                 systemProgram: anchor.web3.SystemProgram.programId,
+                                associatedTokenProgram: ASSOCIATED_PROGRAM_ID
                             })
                             .signers([admin.payer])
                             .rpc();
@@ -241,6 +237,13 @@ describe("program", () => {
 
                 it("raised if partner token account is wrong", async () => {
                     try {
+                        let projectAdminTokenAccount = await createTokenAccount(
+                            token,
+                            tokenProgram.programId,
+                            admin.payer.publicKey,
+                            provider,
+                        );
+
                         await program.methods
                             .claimV2()
                             .accountsStrict({
@@ -254,8 +257,8 @@ describe("program", () => {
                                 partnerTokenAccount: projectAdminTokenAccount,
                                 mint: token,
                                 tokenProgram: tokenProgram.programId,
-                                // Added required additional programs for V2
                                 systemProgram: anchor.web3.SystemProgram.programId,
+                                associatedTokenProgram: ASSOCIATED_PROGRAM_ID
                             })
                             .signers([admin.payer])
                             .rpc();
@@ -269,6 +272,19 @@ describe("program", () => {
                 });
 
                 it("raised if referral token account is wrong", async () => {
+                    let projectAdminTokenAccount = await createTokenAccount(
+                        token,
+                        tokenProgram.programId,
+                        admin.payer.publicKey,
+                        provider,
+                    );
+                    let partnerTokenAccount = await createTokenAccount(
+                        token,
+                        tokenProgram.programId,
+                        partner.publicKey,
+                        provider,
+                    );
+
                     try {
                         await program.methods
                             .claimV2() // Changed to V2 method
@@ -284,6 +300,7 @@ describe("program", () => {
                                 mint: token,
                                 tokenProgram: tokenProgram.programId,
                                 systemProgram: anchor.web3.SystemProgram.programId,
+                                associatedTokenProgram: ASSOCIATED_PROGRAM_ID
                             })
                             .signers([admin.payer])
                             .rpc();

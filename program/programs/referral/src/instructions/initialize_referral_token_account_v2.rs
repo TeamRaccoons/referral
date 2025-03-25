@@ -29,7 +29,8 @@ pub struct InitializeReferralTokenAccountV2<'info> {
     )]
     project: Account<'info, Project>,
     #[account(
-        has_one = project
+        has_one = project,
+        constraint = referral_account.name.is_some(),
     )]
     referral_account: Account<'info, ReferralAccount>,
     #[account(

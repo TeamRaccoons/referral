@@ -3,7 +3,7 @@ use crate::{
     REFERRAL_ATA_SEED, REFERRAL_SEED,
 };
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked};
+use anchor_spl::{associated_token::AssociatedToken, token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked}};
 
 const DENOMINATOR: u128 = 10_000;
 
@@ -93,10 +93,11 @@ pub struct ClaimV2<'info> {
     project: Account<'info, Project>,
     admin: SystemAccount<'info>,
     #[account(
-        mut,
-        token::authority = admin,
-        token::mint = mint,
-        token::token_program = token_program,
+        init_if_needed,
+        payer = payer,
+        associated_token::authority = admin,
+        associated_token::mint = mint,
+        associated_token::token_program = token_program,
     )]
     project_admin_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(
@@ -117,13 +118,15 @@ pub struct ClaimV2<'info> {
     referral_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     partner: SystemAccount<'info>,
     #[account(
-        mut,
-        token::authority = partner,
-        token::mint = mint,
-        token::token_program = token_program,
+        init_if_needed,
+        payer = payer,
+        associated_token::authority = partner,
+        associated_token::mint = mint,
+        associated_token::token_program = token_program,
     )]
     partner_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     mint: Box<InterfaceAccount<'info, Mint>>,
     system_program: Program<'info, System>,
     token_program: Interface<'info, TokenInterface>,
+    associated_token_program: Program<'info, AssociatedToken>,
 }
