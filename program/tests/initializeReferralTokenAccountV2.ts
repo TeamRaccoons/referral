@@ -11,6 +11,8 @@ import {
     createTokenAccount,
     fundTokenAccount,
 } from "./helpers/helpers";
+import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 
 describe("program", () => {
@@ -46,6 +48,7 @@ describe("program", () => {
                 let token: anchor.web3.PublicKey;
                 let referralAmount = 1e8;
                 let defaultShareBps = 5000;
+                let referralAccountPubkey: anchor.web3.PublicKey;
 
                 beforeEach(async () => {
                     base = anchor.web3.Keypair.generate();
@@ -82,6 +85,8 @@ describe("program", () => {
                             program.programId
                         );
 
+                    referralAccountPubkey = referralAccountPda;
+
                     await program.methods
                         .initializeReferralAccountWithName({
                             name: referralName
@@ -90,28 +95,23 @@ describe("program", () => {
                             payer: partner.publicKey,
                             project: projectPubkey,
                             partner: partner.publicKey,
-                            referralAccount: referralAccountPda,
+                            referralAccount: referralAccountPubkey,
                             systemProgram: anchor.web3.SystemProgram.programId,
                         })
                         .signers([partner])
                         .rpc();
 
-                    const referralAccountPubkey = referralAccountPda;
-
                     token = await createTokenMint(tokenProgram, provider);
 
-                    const [referralTokenAccountProgramAddress] =
-                        anchor.web3.PublicKey.findProgramAddressSync(
-                            [
-                                Buffer.from("referral_ata"),
-                                referralAccountPubkey.toBuffer(),
-                                token.toBuffer(),
-                            ],
-                            program.programId,
-                        );
+                    referralTokenAccount = getAssociatedTokenAddressSync(
+                        token,
+                        referralAccountPubkey,
+                        true,
+                        tokenProgram.programId,
+                    );
+                });
 
-                    referralTokenAccount = referralTokenAccountProgramAddress;
-
+                it("Is initialized!", async () => {
                     await program.methods
                         .initializeReferralTokenAccountV2()
                         .accountsStrict({
@@ -122,68 +122,31 @@ describe("program", () => {
                             mint: token,
                             tokenProgram: tokenProgram.programId,
                             systemProgram: anchor.web3.SystemProgram.programId,
+                            associatedTokenProgram: ASSOCIATED_PROGRAM_ID
                         })
                         .signers([admin.payer])
                         .rpc();
 
-                    // Verify token account exists
-                    it("Is initialized!", async () => {
-                        await program.methods
-                            .initializeReferralTokenAccountV2()
-                            .accountsStrict({
-                                payer: admin.payer.publicKey,
-                                referralAccount: referralAccountPubkey,
-                                referralTokenAccount,
-                                project: projectPubkey,
-                                mint: token,
-                                tokenProgram: tokenProgram.programId,
-                                systemProgram: anchor.web3.SystemProgram.programId,
-                            })
-                            .signers([admin.payer])
-                            .rpc();
+                    // Verify initial balance is zero
+                    let referralTokenAccountBalance = await getAccountBalance(
+                        referralTokenAccount,
+                        provider,
+                    );
+                    expect(referralTokenAccountBalance).to.equal(0);
 
-                        // Verify initial balance is zero
-                        let referralTokenAccountBalance = await getAccountBalance(
-                            referralTokenAccount,
-                            provider,
-                        );
-                        expect(referralTokenAccountBalance).to.equal(0);
+                    const { value } = await provider.connection.getTokenAccountsByOwner(
+                        referralAccountPubkey,
+                        {
+                            mint: token,
+                        },
+                    );
 
-                        const { value } = await provider.connection.getTokenAccountsByOwner(
-                            referralAccountPubkey,  // Check under referral account instead of project
-                            {
-                                mint: token,
-                            },
-                        );
-
-                        const accountExist = value.find(({ pubkey }) =>
-                            pubkey.equals(referralTokenAccount),
-                        );
-                        expect(accountExist.pubkey).to.eql(referralTokenAccount);
-                    });
+                    const accountExist = value.find(({ pubkey }) =>
+                        pubkey.equals(referralTokenAccount),
+                    );
+                    expect(accountExist.pubkey).to.eql(referralTokenAccount);
                 });
             });
         });
     });
 });
-
-async function hasTokenAccount(
-    referralAccount: anchor.web3.PublicKey,
-    mint: anchor.web3.PublicKey,
-    program: Program<Referral>,
-    connection: anchor.web3.Connection
-): Promise<boolean> {
-    // Derive the expected token account PDA
-    const [referralTokenAccountPda] = anchor.web3.PublicKey.findProgramAddressSync(
-        [
-            Buffer.from("referral_ata"),
-            referralAccount.toBuffer(),
-            mint.toBuffer(),
-        ],
-        program.programId
-    );
-
-    // Check if the account exists
-    const accountInfo = await connection.getAccountInfo(referralTokenAccountPda);
-    return accountInfo !== null;
-}

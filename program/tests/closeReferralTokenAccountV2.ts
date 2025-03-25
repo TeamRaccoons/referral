@@ -9,6 +9,8 @@ import {
     fundAccount,
     getAccountBalance,
 } from "./helpers/helpers";
+import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 describe("program", () => {
     const provider = anchor.AnchorProvider.env();
@@ -101,17 +103,12 @@ describe("program", () => {
 
                     token = await createTokenMint(tokenProgram, provider);
 
-                    const [referralTokenAccountProgramAddress] =
-                        anchor.web3.PublicKey.findProgramAddressSync(
-                            [
-                                Buffer.from("referral_ata"),
-                                referralAccountPubkey.toBuffer(),
-                                token.toBuffer(),
-                            ],
-                            program.programId,
-                        );
-
-                    referralTokenAccount = referralTokenAccountProgramAddress;
+                    referralTokenAccount = getAssociatedTokenAddressSync(
+                        token,
+                        referralAccountPubkey,
+                        true,
+                        tokenProgram.programId,
+                    );
 
                     await program.methods
                         .initializeReferralTokenAccountV2()
@@ -123,6 +120,7 @@ describe("program", () => {
                             mint: token,
                             tokenProgram: tokenProgram.programId,
                             systemProgram: anchor.web3.SystemProgram.programId,
+                            associatedTokenProgram: ASSOCIATED_PROGRAM_ID
                         })
                         .signers([admin.payer])
                         .rpc();
@@ -139,6 +137,7 @@ describe("program", () => {
                             partner: partner.publicKey,
                             mint: token,
                             tokenProgram: tokenProgram.programId,
+                            associatedTokenProgram: ASSOCIATED_PROGRAM_ID
                         })
                         .signers([admin.payer])
                         .rpc();

@@ -1,9 +1,12 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token_interface::{Mint, TokenAccount, TokenInterface},
+};
 
 use crate::{
     events::InitializeReferralTokenAccountEvent, Project, ReferralAccount, PROJECT_SEED,
-    REFERRAL_ATA_SEED,
+    REFERRAL_SEED,
 };
 
 pub fn initialize_referral_token_account_v2(
@@ -31,18 +34,20 @@ pub struct InitializeReferralTokenAccountV2<'info> {
     #[account(
         has_one = project,
         constraint = referral_account.name.is_some(),
+        seeds = [REFERRAL_SEED, project.key().as_ref(), referral_account.name.as_ref().unwrap().as_bytes()],
+        bump
     )]
     referral_account: Account<'info, ReferralAccount>,
     #[account(
         init,
         payer = payer,
-        seeds = [REFERRAL_ATA_SEED, referral_account.key().as_ref(), mint.key().as_ref()],
-        bump,
-        token::mint = mint,
-        token::authority = referral_account
+        associated_token::mint = mint,
+        associated_token::authority = referral_account,
+        associated_token::token_program = token_program
     )]
     referral_token_account: InterfaceAccount<'info, TokenAccount>,
     mint: InterfaceAccount<'info, Mint>,
     system_program: Program<'info, System>,
+    associated_token_program: Program<'info, AssociatedToken>,
     token_program: Interface<'info, TokenInterface>,
 }

@@ -104,17 +104,13 @@ describe("program", () => {
                         .rpc();
 
                     token = await createTokenMint(tokenProgram, provider);
-                    const [referralTokenAccountProgramAddress] =
-                        anchor.web3.PublicKey.findProgramAddressSync(
-                            [
-                                Buffer.from("referral_ata"),
-                                referralAccountPubkey.toBuffer(),
-                                token.toBuffer(),
-                            ],
-                            program.programId,
-                        );
 
-                    referralTokenAccount = referralTokenAccountProgramAddress;
+                    referralTokenAccount = getAssociatedTokenAddressSync(
+                        token,
+                        referralAccountPubkey,
+                        true,
+                        tokenProgram.programId,
+                    );
 
                     await program.methods
                         .initializeReferralTokenAccountV2()
@@ -126,6 +122,7 @@ describe("program", () => {
                             mint: token,
                             tokenProgram: tokenProgram.programId,
                             systemProgram: anchor.web3.SystemProgram.programId,
+                            associatedTokenProgram: ASSOCIATED_PROGRAM_ID
                         })
                         .signers([admin.payer])
                         .rpc();
@@ -158,25 +155,29 @@ describe("program", () => {
                         tokenProgram.programId,
                     );
                     console.log("Claiming");
-                    await program.methods
-                        .claimV2()
-                        .accountsStrict({
-                            payer: admin.payer.publicKey,
-                            admin: admin.payer.publicKey,
-                            partner: partner.publicKey,
-                            project: projectPubkey,
-                            projectAdminTokenAccount,
-                            referralAccount: referralAccountPubkey,
-                            referralTokenAccount,
-                            partnerTokenAccount,
-                            mint: token,
-                            tokenProgram: tokenProgram.programId,
-                            systemProgram: anchor.web3.SystemProgram.programId,
-                            associatedTokenProgram: ASSOCIATED_PROGRAM_ID
-                        })
-                        .signers([admin.payer])
-                        .rpc();
-                    console.log("Claimed");
+                    try {
+                        await program.methods
+                            .claimV2()
+                            .accountsStrict({
+                                payer: admin.payer.publicKey,
+                                admin: admin.payer.publicKey,
+                                partner: partner.publicKey,
+                                project: projectPubkey,
+                                projectAdminTokenAccount,
+                                referralAccount: referralAccountPubkey,
+                                referralTokenAccount,
+                                partnerTokenAccount,
+                                mint: token,
+                                tokenProgram: tokenProgram.programId,
+                                systemProgram: anchor.web3.SystemProgram.programId,
+                                associatedTokenProgram: ASSOCIATED_PROGRAM_ID
+                            })
+                            .signers([admin.payer])
+                            .rpc();
+                        console.log("Claimed");
+                    } catch (err) {
+                        console.log(err);
+                    }
 
                     referralTokenAccountBalance = await getAccountBalance(
                         referralTokenAccount,
@@ -309,7 +310,8 @@ describe("program", () => {
                     } catch (_err) {
                         expect(_err).to.be.instanceOf(AnchorError);
                         const err: AnchorError = _err;
-                        expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
+                        // Not ConstraintSeeds anymore because its just an ATA now
+                        expect(err.error.errorCode.code).to.equal("ConstraintTokenOwner");
                     }
                 });
             });

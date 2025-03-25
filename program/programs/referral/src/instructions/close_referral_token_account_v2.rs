@@ -1,9 +1,10 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::{
-    close_account, CloseAccount, Mint, TokenAccount, TokenInterface,
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token_interface::{close_account, CloseAccount, Mint, TokenAccount, TokenInterface},
 };
 
-use crate::{Project, ReferralAccount, PROJECT_SEED, REFERRAL_ATA_SEED, REFERRAL_SEED};
+use crate::{Project, ReferralAccount, PROJECT_SEED, REFERRAL_SEED};
 
 pub fn close_referral_token_account_v2(ctx: Context<CloseReferralTokenAccountV2>) -> Result<()> {
     let bump = ctx.bumps.referral_account;
@@ -53,15 +54,14 @@ pub struct CloseReferralTokenAccountV2<'info> {
     referral_account: Account<'info, ReferralAccount>,
     #[account(
         mut,
-        seeds = [REFERRAL_ATA_SEED, referral_account.key().as_ref(), mint.key().as_ref()],
-        bump,
-        token::authority = referral_account,
-        token::mint = mint,
-        token::token_program = token_program,
+        associated_token::authority = referral_account,
+        associated_token::mint = mint,
+        associated_token::token_program = token_program,
     )]
     referral_token_account: InterfaceAccount<'info, TokenAccount>,
     #[account(mut)]
     partner: SystemAccount<'info>,
     mint: InterfaceAccount<'info, Mint>,
     token_program: Interface<'info, TokenInterface>,
+    associated_token_program: Program<'info, AssociatedToken>,
 }

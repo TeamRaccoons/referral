@@ -1,9 +1,11 @@
 use crate::{
-    events::ClaimEvent, ProgramErrorCode, Project, ReferralAccount, PROJECT_SEED,
-    REFERRAL_ATA_SEED, REFERRAL_SEED,
+    events::ClaimEvent, ProgramErrorCode, Project, ReferralAccount, PROJECT_SEED, REFERRAL_SEED,
 };
 use anchor_lang::prelude::*;
-use anchor_spl::{associated_token::AssociatedToken, token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked}};
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
+};
 
 const DENOMINATOR: u128 = 10_000;
 
@@ -110,10 +112,9 @@ pub struct ClaimV2<'info> {
     referral_account: Account<'info, ReferralAccount>,
     #[account(
         mut,
-        seeds = [REFERRAL_ATA_SEED, referral_account.key().as_ref(), mint.key().as_ref()],
-        bump,
-        token::mint = mint,
-        token::authority = referral_account
+        associated_token::mint = mint,
+        associated_token::authority = referral_account,
+        associated_token::token_program = token_program,
     )]
     referral_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     partner: SystemAccount<'info>,
