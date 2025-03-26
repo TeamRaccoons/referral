@@ -98,12 +98,6 @@ pub mod referral {
         instructions::close_referral_token_account(ctx)
     }
 
-    pub fn initialize_referral_token_account_v2(
-        ctx: Context<InitializeReferralTokenAccountV2>,
-    ) -> Result<()> {
-        instructions::initialize_referral_token_account_v2(ctx)
-    }
-
     pub fn claim_v2(ctx: Context<ClaimV2>) -> Result<()> {
         instructions::claim_v2(ctx)
     }

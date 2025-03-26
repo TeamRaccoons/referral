@@ -5,12 +5,13 @@ import { expect } from "chai";
 
 import { Referral } from "../target/types/referral";
 import {
+    createAssociatedTokenAccountWithOffCurve,
     createTokenMint,
     fundAccount,
     getAccountBalance,
 } from "./helpers/helpers";
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
-import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { createAssociatedTokenAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 describe("program", () => {
     const provider = anchor.AnchorProvider.env();
@@ -103,27 +104,12 @@ describe("program", () => {
 
                     token = await createTokenMint(tokenProgram, provider);
 
-                    referralTokenAccount = getAssociatedTokenAddressSync(
+                    referralTokenAccount = await createAssociatedTokenAccountWithOffCurve(
                         token,
-                        referralAccountPubkey,
-                        true,
                         tokenProgram.programId,
+                        referralAccountPubkey,
+                        provider
                     );
-
-                    await program.methods
-                        .initializeReferralTokenAccountV2()
-                        .accountsStrict({
-                            payer: admin.payer.publicKey,
-                            referralAccount: referralAccountPubkey,
-                            referralTokenAccount,
-                            project: projectPubkey,
-                            mint: token,
-                            tokenProgram: tokenProgram.programId,
-                            systemProgram: anchor.web3.SystemProgram.programId,
-                            associatedTokenProgram: ASSOCIATED_PROGRAM_ID
-                        })
-                        .signers([admin.payer])
-                        .rpc();
                 });
 
                 it("Is able to close referral token account v2!", async () => {
