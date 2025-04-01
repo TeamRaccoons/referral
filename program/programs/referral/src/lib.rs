@@ -97,6 +97,16 @@ pub mod referral {
     pub fn close_referral_token_account(ctx: Context<CloseReferralTokenAccount>) -> Result<()> {
         instructions::close_referral_token_account(ctx)
     }
+
+    pub fn claim_v2(ctx: Context<ClaimV2>) -> Result<()> {
+        instructions::claim_v2(ctx)
+    }
+
+    pub fn close_referral_token_account_v2(
+        ctx: Context<CloseReferralTokenAccountV2>,
+    ) -> Result<()> {
+        instructions::close_referral_token_account_v2(ctx)
+    }
 }
 
 #[derive(Accounts)]

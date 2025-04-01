@@ -1,9 +1,10 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { splTokenProgram } from "@coral-xyz/spl-token";
-import { createAssociatedTokenAccount } from "@solana/spl-token";
+import { createAssociatedTokenAccount, createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 import { Referral } from "../../target/types/referral";
+import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 
 type TokenProgramReturnType = ReturnType<typeof splTokenProgram>;
 
@@ -57,6 +58,35 @@ export const createTokenAccount = async (
     tokenProgram,
   );
 };
+
+export const createAssociatedTokenAccountWithOffCurve = async (
+  mint: anchor.web3.PublicKey,
+  programId: anchor.web3.PublicKey,
+  owner: anchor.web3.PublicKey,
+  provider: anchor.AnchorProvider,
+) => {
+  const associatedToken = getAssociatedTokenAddressSync(
+    mint,
+    owner,
+    true,  // allowOwnerOffCurve set to true
+    programId,
+    ASSOCIATED_PROGRAM_ID
+  );
+
+  const tx = new anchor.web3.Transaction().add(
+    createAssociatedTokenAccountInstruction(
+      provider.wallet.publicKey,  // payer
+      associatedToken,            // associatedToken
+      owner,                      // owner
+      mint,                       // mint
+      programId,                  // programId
+      ASSOCIATED_PROGRAM_ID      // associatedTokenProgramId
+    )
+  );
+
+  await provider.sendAndConfirm(tx);
+  return associatedToken;
+}
 
 export const fundTokenAccount = async (
   tokenAccount: anchor.web3.PublicKey,
