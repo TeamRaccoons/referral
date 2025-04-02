@@ -1096,6 +1096,16 @@ export class ReferralProvider {
             txs.push(new VersionedTransaction(messageV0));
           }
         }
+        if (instructions.length > 0) {
+          const messageV0 = new TransactionMessage({
+            payerKey: payerPubKey,
+            instructions,
+            recentBlockhash: blockhash,
+          }).compileToV0Message([lookupTableAccount]);
+
+          txs.push(new VersionedTransaction(messageV0));
+        }
+
         return txs;
       }),
     );
