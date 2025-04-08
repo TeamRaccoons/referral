@@ -202,6 +202,34 @@ describe("program", () => {
           );
         });
 
+        it("Is able to initialize referral token account", async () => {
+          // Create a new token mint for testing
+          // Get the referral token account address
+          const tokenAccount = getAssociatedTokenAddressSync(
+            token,
+            referralAccountPubkey,
+            true,
+            tokenProgram.programId,
+          );
+          const ix = createAssociatedTokenAccountIdempotentInstruction(
+            admin.payer.publicKey,
+            tokenAccount,
+            referralAccountPubkey,
+            token,
+            tokenProgram.programId,
+          );
+
+          const tx = new Transaction().add(ix);
+
+          // Initialize the referral token account
+          await provider.sendAndConfirm(tx, [admin.payer]);
+          // Check that account exists
+          const accountInfo = await provider.connection.getAccountInfo(
+            tokenAccount,
+          );
+          expect(accountInfo).to.not.be.null;
+        });
+
         it("Is able to claim using V2!", async () => {
           let referralTokenAccountBalance = await getAccountBalance(
             referralTokenAccount,
