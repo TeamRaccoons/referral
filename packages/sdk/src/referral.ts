@@ -560,7 +560,7 @@ export class ReferralProvider {
     mint,
   }: InitializeReferralTokenAccountVariable): Promise<{
     tx: Transaction;
-    referralTokenAccountPubKey: PublicKey;
+    tokenAccount: PublicKey;
   }> {
     const mintAccount = await this.connection.getAccountInfo(mint);
     if (!mintAccount) throw new Error("Invalid mint");
@@ -572,14 +572,9 @@ export class ReferralProvider {
     )
       throw new Error("Invalid mint");
 
-    const referralTokenAccountPubKey = this.getReferralTokenAccountPubKey({
-      referralAccountPubKey,
-      mint,
-    });
-
     const tokenAccount = getAssociatedTokenAddressSync(
       mint,
-      referralTokenAccountPubKey,
+      referralAccountPubKey,
       true,
       mintAccount.owner,
     );
@@ -587,14 +582,14 @@ export class ReferralProvider {
     const ix = createAssociatedTokenAccountIdempotentInstruction(
       payerPubKey,
       tokenAccount,
-      referralTokenAccountPubKey,
+      referralAccountPubKey,
       mint,
       mintAccount.owner,
     );
 
     const tx = new Transaction().add(ix);
 
-    return { tx, referralTokenAccountPubKey };
+    return { tx, tokenAccount };
   }
 
   public async claim({
