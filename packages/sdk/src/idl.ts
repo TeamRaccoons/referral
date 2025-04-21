@@ -409,6 +409,118 @@ export type Referral = {
         },
       ];
     },
+    {
+      name: "claimV2";
+      accounts: [
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "project";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "admin";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "projectAdminTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "referralAccount";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "referralTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "partner";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "partnerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "associatedTokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+      ];
+      args: [];
+    },
+    {
+      name: "closeReferralTokenAccountV2";
+      accounts: [
+        {
+          name: "admin";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "project";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "referralAccount";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "referralTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "partner";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "associatedTokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+      ];
+      args: [];
+    },
   ];
   accounts: [
     {
@@ -1147,6 +1259,118 @@ export const IDL: Referral = {
           },
         },
       ],
+    },
+    {
+      name: "claimV2",
+      accounts: [
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "project",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "admin",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "projectAdminTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "referralAccount",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "referralTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "partner",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "partnerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "associatedTokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "closeReferralTokenAccountV2",
+      accounts: [
+        {
+          name: "admin",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "project",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "referralAccount",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "referralTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "partner",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "associatedTokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
     },
   ],
   accounts: [
