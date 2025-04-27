@@ -5,7 +5,7 @@ import {
 } from "@jup-ag/referral-sdk";
 import { PublicKey } from "@solana/web3.js";
 
-import { JUPITER_PROJECT } from "./constants";
+import { JUPITER_PROJECT, JUPITER_PROJECT_ULTRA } from "./constants";
 import { nonNullable } from "./utils";
 
 export const getReferralAccounts = async (
@@ -14,6 +14,16 @@ export const getReferralAccounts = async (
 ) => {
   return provider.getReferralAccounts([
     referralAccountProjectFilter(JUPITER_PROJECT),
+    referralAccountPartnerFilter(wallet),
+  ]);
+};
+
+export const getUltraReferralAccounts = async (
+  provider: ReferralProvider,
+  wallet: PublicKey,
+) => {
+  return provider.getReferralAccounts([
+    referralAccountProjectFilter(JUPITER_PROJECT_ULTRA),
     referralAccountPartnerFilter(wallet),
   ]);
 };

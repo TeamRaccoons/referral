@@ -12,7 +12,11 @@ export const siteConfig = {
 export const navItems = [
   {
     href: "/dashboard",
-    title: "Dashboard",
+    title: "Dashboard (Swap)",
+  },
+  {
+    href: "/dashboard-ultra",
+    title: "Dashboard (Ultra)",
   },
   {
     href: "/api",

@@ -46,8 +46,8 @@ import { useTokenInfos } from "@/hooks/useTokenInfo";
 import { useGetTokenPrices } from "@/hooks/useTokenPrice";
 import { useTopTokens } from "@/hooks/useTopTokens";
 import { useTotalUnclaimed } from "@/hooks/useTotalUnclaimed";
-import { JUPITER_PROJECT } from "@/lib/constants";
-import { getReferralAccounts } from "@/lib/referral";
+import { JUPITER_PROJECT_ULTRA } from "@/lib/constants";
+import { getUltraReferralAccounts } from "@/lib/referral";
 import { cn, nonNullable } from "@/lib/utils";
 
 interface IDashboardProps {
@@ -81,7 +81,7 @@ const Dashboard: React.FunctionComponent<IDashboardProps> = ({
               ),
             },
           ]
-        : getReferralAccounts(referralProvider, publicKey!);
+        : getUltraReferralAccounts(referralProvider, publicKey!);
     },
     enabled: Boolean(publicKey),
   });
@@ -163,7 +163,7 @@ const CreateForm: React.FC<Props & { onSuccess: () => void }> = ({
       name: values.projectName,
       partnerPubKey: wallet.adapter.publicKey,
       payerPubKey: wallet.adapter.publicKey,
-      projectPubKey: JUPITER_PROJECT,
+      projectPubKey: JUPITER_PROJECT_ULTRA,
     });
     try {
       const txid = await sendTransaction(tx);
@@ -309,11 +309,11 @@ const TokenTable: React.FC<
       <Card className="flex min-h-[700px] w-full flex-col">
         <CardHeader>
           <CardTitle className="flex justify-between">
-            <span>Referral Token Accounts</span>
+            <span>Ultra Referral Token Accounts</span>
             <Link
               href={`/dashboard/${referralPubkey.toString()}/create-token-accounts`}
             >
-              <Button>Create Token Accounts</Button>
+              <Button>Create Ultra Token Accounts</Button>
             </Link>
           </CardTitle>
           <CardDescription>
