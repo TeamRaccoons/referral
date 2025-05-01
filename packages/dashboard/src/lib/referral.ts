@@ -34,6 +34,7 @@ interface CreateReferralTokenAccountsParams {
   referralPubkey: PublicKey;
   referralProvider: ReferralProvider;
 }
+
 export const createReferralTokenAccounts = async ({
   tokenMints,
   referralProvider,
@@ -47,6 +48,37 @@ export const createReferralTokenAccounts = async ({
           mint: new PublicKey(token),
           payerPubKey: wallet,
           referralAccountPubKey: referralPubkey,
+        });
+      })
+      .filter(nonNullable),
+  );
+
+  let instructions = referralTokenAccounts.flatMap(({ tx }) => {
+    return tx.instructions;
+  });
+
+  let tx = referralTokenAccounts[0].tx;
+  tx.instructions = instructions;
+
+  return tx;
+};
+
+interface CreateUltraReferralTokenAccountsParams
+  extends CreateReferralTokenAccountsParams {}
+
+export const createUltraReferralTokenAccounts = async ({
+  tokenMints,
+  referralProvider,
+  referralPubkey,
+  wallet,
+}: CreateUltraReferralTokenAccountsParams) => {
+  let referralTokenAccounts = await Promise.all(
+    tokenMints
+      .map((token) => {
+        return referralProvider.initializeReferralTokenAccountV2({
+          payerPubKey: wallet,
+          referralAccountPubKey: referralPubkey,
+          mint: new PublicKey(token),
         });
       })
       .filter(nonNullable),

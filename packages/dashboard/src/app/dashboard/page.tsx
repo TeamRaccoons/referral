@@ -454,7 +454,7 @@ const DashboardHeader: React.FC<{
               </Button>
             </div>
 
-            <div className="mt-2 flex justify-end text-right text-xs text-[#E8F9FF]/50">
+            <div className="mt-2 flex justify-end text-right text-xs">
               <div className="max-w-[300px]">
                 Only stricts tokens with value more than $1 with be claimed.
                 Please use the SDK to claim other tokens.

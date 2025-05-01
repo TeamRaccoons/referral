@@ -13,10 +13,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import PageTitle from "@/components/page-title";
-import {
-  TokenDataTable,
-  TokenDataTableRowData,
-} from "@/components/token-data-table";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -37,18 +33,22 @@ import {
 import { Wallet } from "@/components/ui/icons";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  TokenDataTable,
+  TokenDataTableRowData,
+} from "@/components/ultra-token-data-table";
 import { WalletButton } from "@/components/wallet-button";
 import { useConnection, useWallet } from "@/components/wallet-provider";
-import { useReferralTokens } from "@/hooks/useReferralTokens";
 import { useSendAllTransactions } from "@/hooks/useSendAllTransactions";
 import { useSendTransaction } from "@/hooks/useSendTransaction";
 import { useTokenInfos } from "@/hooks/useTokenInfo";
 import { useGetTokenPrices } from "@/hooks/useTokenPrice";
 import { useTopTokens } from "@/hooks/useTopTokens";
 import { useTotalUnclaimed } from "@/hooks/useTotalUnclaimed";
+import { useUltraReferralTokens } from "@/hooks/useUltraReferralTokens";
 import { JUPITER_PROJECT_ULTRA } from "@/lib/constants";
 import { getUltraReferralAccounts } from "@/lib/referral";
-import { cn, nonNullable } from "@/lib/utils";
+import { nonNullable } from "@/lib/utils";
 
 interface IDashboardProps {
   params: { referral: string };
@@ -93,7 +93,8 @@ const Dashboard: React.FunctionComponent<IDashboardProps> = ({
         <div className="py-6">
           <h2 className="text-2xl font-semibold">Referral Token Accounts</h2>
           <p className="text-sm/5 font-medium dark:text-[#667085]">
-            Connect your wallet to interact with your referral token accounts.
+            Connect your wallet to interact with your ultra referral token
+            accounts.
           </p>
         </div>
         <WalletButton />
@@ -181,7 +182,7 @@ const CreateForm: React.FC<Props & { onSuccess: () => void }> = ({
       >
         <Card className="w-full">
           <CardHeader>
-            <CardTitle>Create Referral Account</CardTitle>
+            <CardTitle>Create Ultra Referral Account</CardTitle>
             <CardDescription>Use your project name</CardDescription>
           </CardHeader>
           <CardContent>
@@ -224,7 +225,10 @@ const TokenTable: React.FC<
 
   const topTokens = useTopTokens();
 
-  const referralTokens = useReferralTokens(referralProvider, referralPubkey);
+  const referralTokens = useUltraReferralTokens(
+    referralProvider,
+    referralPubkey,
+  );
 
   const hasTokens =
     referralTokens.data?.token2022Accounts.length ||
@@ -286,7 +290,7 @@ const TokenTable: React.FC<
   }, [data]);
 
   React.useMemo(() => {
-    const url = `/dashboard/${referralPubkey.toString()}/create-token-accounts`;
+    const url = `/dashboard-ultra/${referralPubkey.toString()}/create-token-accounts`;
     if (!hasTokens && !referralTokens.isLoading) {
       router.push(url);
     } else {
@@ -309,11 +313,11 @@ const TokenTable: React.FC<
       <Card className="flex min-h-[700px] w-full flex-col">
         <CardHeader>
           <CardTitle className="flex justify-between">
-            <span>Ultra Referral Token Accounts</span>
+            <span>Referral Token Accounts</span>
             <Link
-              href={`/dashboard/${referralPubkey.toString()}/create-token-accounts`}
+              href={`/dashboard-ultra/${referralPubkey.toString()}/create-token-accounts`}
             >
-              <Button>Create Ultra Token Accounts</Button>
+              <Button>Create Token Accounts</Button>
             </Link>
           </CardTitle>
           <CardDescription>
@@ -358,7 +362,10 @@ const DashboardHeader: React.FC<{
   const queryClient = useQueryClient();
   const sendAllTransactions = useSendAllTransactions();
 
-  const referralTokens = useReferralTokens(referralProvider, referralPubkey);
+  const referralTokens = useUltraReferralTokens(
+    referralProvider,
+    referralPubkey,
+  );
 
   const tokensWithAmount = React.useMemo(() => {
     return [
@@ -386,10 +393,9 @@ const DashboardHeader: React.FC<{
     try {
       setIsClaiming(true);
 
-      const txsCompiled = await referralProvider.claimPartially({
+      const txsCompiled = await referralProvider.claimAllV2({
         payerPubKey: wallet.publicKey,
         referralAccountPubKey: referralPubkey,
-        withdrawalableTokenAddress,
       });
       setIsClaiming(false);
 
@@ -401,7 +407,6 @@ const DashboardHeader: React.FC<{
       setIsClaiming(false);
     }
   }, [
-    withdrawalableTokenAddress,
     referralPubkey,
     wallet,
     referralProvider,
@@ -411,7 +416,10 @@ const DashboardHeader: React.FC<{
 
   return (
     <div className="w-full">
-      <PageTitle title="Dashboard" referralPubkey={referralPubkey.toBase58()} />
+      <PageTitle
+        title="Ultra Dashboard"
+        referralPubkey={referralPubkey.toBase58()}
+      />
 
       <div className="my-2">
         <Card className="grid gap-2 md:grid-cols-2 lg:grid-cols-2">
@@ -454,7 +462,7 @@ const DashboardHeader: React.FC<{
               </Button>
             </div>
 
-            <div className="mt-2 flex justify-end text-right text-xs text-[#E8F9FF]/50">
+            <div className="mt-2 flex justify-end text-right text-xs ">
               <div className="max-w-[300px]">
                 Only stricts tokens with value more than $1 with be claimed.
                 Please use the SDK to claim other tokens.

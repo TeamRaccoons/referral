@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { ReferralProvider } from "@jup-ag/referral-sdk";
 import { Connection, PublicKey } from "@solana/web3.js";
 
-import { RPC_URL, ULTRA_PROJECT } from "@/lib/constants";
+import { JUPITER_PROJECT_ULTRA, RPC_URL } from "@/lib/constants";
 
 export const runtime = "edge";
 
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
     const { tx, referralAccountPubKey } =
       await provider.initializeReferralAccountWithName({
-        projectPubKey: ULTRA_PROJECT,
+        projectPubKey: JUPITER_PROJECT_ULTRA,
         partnerPubKey,
         payerPubKey: partnerPubKey,
         name,
