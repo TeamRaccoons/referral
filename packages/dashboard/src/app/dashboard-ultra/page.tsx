@@ -91,7 +91,7 @@ const Dashboard: React.FunctionComponent<IDashboardProps> = ({
       <div className="m-auto flex max-w-[350px] flex-col items-center text-center">
         <Wallet className="fill-black text-black" />
         <div className="py-6">
-          <h2 className="text-2xl font-semibold">Referral Token Accounts</h2>
+          <h2 className="text-2xl font-semibold">Ultra Referral Token Accounts</h2>
           <p className="text-sm/5 font-medium dark:text-[#667085]">
             Connect your wallet to interact with your ultra referral token
             accounts.
