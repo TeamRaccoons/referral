@@ -12,7 +12,7 @@ export const siteConfig = {
 export const navItems = [
   {
     href: "/dashboard",
-    title: "Swap",
+    title: "Swap + Trigger",
   },
   {
     href: "/dashboard-ultra",

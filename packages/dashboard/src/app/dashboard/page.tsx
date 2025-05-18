@@ -411,7 +411,10 @@ const DashboardHeader: React.FC<{
 
   return (
     <div className="w-full">
-      <PageTitle title="Swap Dashboard" referralPubkey={referralPubkey.toBase58()} />
+      <PageTitle
+        title="Swap + Trigger Dashboard"
+        referralPubkey={referralPubkey.toBase58()}
+      />
 
       <div className="my-2">
         <Card className="grid gap-2 md:grid-cols-2 lg:grid-cols-2">

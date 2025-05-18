@@ -210,7 +210,8 @@ const CreateTokenAccounts: React.FunctionComponent<
               <CardHeader className=" py-5">
                 <CardTitle>Referral Token Accounts</CardTitle>
                 <CardDescription>
-                  Select new token accounts that you would like to create:
+                  Select new token accounts that you would like to earn fees
+                  when using Swap + Trigger APIs.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-1 pb-6 pt-4 dark:bg-[#101828]">
