@@ -16,7 +16,7 @@ require("@solana/wallet-adapter-react-ui/styles.css");
 require("../styles/globals.css");
 
 const fontSans = Inter({
-  subsets: ["latin"] as const,
+  subsets: ["latin"],
   variable: "--font-sans",
 });
 const fontCal = LocalFont({
