@@ -62,6 +62,8 @@
   },
   "devDependencies": {
     "@types/bs58": "^4.0.1",
-    "@types/swagger-ui-react": "^4.18.0"
+    "@types/swagger-ui-react": "^4.18.0",
+    "postcss-import": "^16.1.0",
+    "postcss-nesting": "^13.0.1"
   }
 }

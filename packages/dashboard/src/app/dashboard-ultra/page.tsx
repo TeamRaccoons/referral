@@ -8,7 +8,7 @@ import { ReferralProvider, type ReferralAccount } from "@jup-ag/referral-sdk";
 import { PublicKey } from "@solana/web3.js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Decimal } from "decimal.js";
-import { Dot } from "lucide-react";
+import { Dot, FileText, Github } from "lucide-react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -91,7 +91,9 @@ const Dashboard: React.FunctionComponent<IDashboardProps> = ({
       <div className="m-auto flex max-w-[350px] flex-col items-center text-center">
         <Wallet className="fill-black text-black" />
         <div className="py-6">
-          <h2 className="text-2xl font-semibold">Ultra Referral Token Accounts</h2>
+          <h2 className="text-2xl font-semibold">
+            Ultra Referral Token Accounts
+          </h2>
           <p className="text-sm/5 font-medium dark:text-[#667085]">
             Connect your wallet to interact with your ultra referral token
             accounts.
@@ -312,8 +314,8 @@ const TokenTable: React.FC<
       />
       <Card className="flex min-h-[700px] w-full flex-col">
         <CardHeader>
-          <CardTitle className="flex justify-between">
-            <span>Referral Token Accounts</span>
+          <CardTitle className="mb-3 flex justify-between">
+            <span>Ultra Referral Token Accounts</span>
             <Link
               href={`/dashboard-ultra/${referralPubkey.toString()}/create-token-accounts`}
             >
@@ -321,17 +323,25 @@ const TokenTable: React.FC<
             </Link>
           </CardTitle>
           <CardDescription>
-            Token accounts must be created to collect fees in their
-            corresponding tokens. Only tokens in the Jupiter strict list are
-            displayed, to harvest unknown tokens use the SDK (
-            <a
-              href="https://github.com/TeamRaccoons/referral/tree/main/example"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              https://github.com/TeamRaccoons/referral/tree/main/example
-            </a>
-            )
+            <p className="mb-2">
+              Token accounts must be created to collect fees in their
+              corresponding tokens. Only tokens in the Jupiter strict list are
+              displayed.
+            </p>
+            <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2 text-xs dark:border-gray-700 dark:bg-gray-800/30">
+              <Github size={14} />
+              <span>
+                To harvest unknown tokens use the{" "}
+                <a
+                  href="https://github.com/Jupiter-DevRel/typescript-examples/tree/main/ultra/order-execute-with-referral-accounts/src/scripts"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  SDK Example
+                </a>
+              </span>
+            </div>
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 rounded-b-lg py-4 dark:bg-[#101828]">
@@ -436,6 +446,29 @@ const DashboardHeader: React.FC<{
                   <Dot /> Fee to Jupiter
                 </span>
                 <span>{projectFeePct}%</span>
+              </div>
+            </div>
+            <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/30">
+              <h3 className="mb-3 text-sm font-semibold tracking-tight">
+                How to use Referral Account in Ultra API?
+              </h3>
+              <div className="flex flex-col space-y-3 text-sm">
+                <Link
+                  href="https://dev.jup.ag/docs/ultra-api/add-fees-to-ultra"
+                  target="_blank"
+                  className="text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2 shadow-sm transition-all hover:text-white dark:bg-gray-700 dark:hover:text-black"
+                >
+                  <FileText size={16} />
+                  Documentation
+                </Link>
+                <Link
+                  href="https://github.com/Jupiter-DevRel/typescript-examples/tree/main/ultra/order-execute-with-referral-accounts"
+                  target="_blank"
+                  className="text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2 shadow-sm transition-all hover:text-white dark:bg-gray-700 dark:hover:text-black"
+                >
+                  <Github size={16} />
+                  TypeScript Example
+                </Link>
               </div>
             </div>
           </CardContent>

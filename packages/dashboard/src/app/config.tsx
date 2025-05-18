@@ -18,10 +18,10 @@ export const navItems = [
     href: "/dashboard-ultra",
     title: "Ultra",
   },
-  {
-    href: "/api",
-    title: "API",
-  },
+  // {
+  //   href: "/api",
+  //   title: "API",
+  // },
 ] satisfies { href: Route; title: string }[];
 
 export const marketingFeatures = [

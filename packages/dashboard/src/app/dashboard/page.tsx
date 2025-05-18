@@ -8,7 +8,7 @@ import { ReferralProvider, type ReferralAccount } from "@jup-ag/referral-sdk";
 import { PublicKey } from "@solana/web3.js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Decimal } from "decimal.js";
-import { Dot } from "lucide-react";
+import { Dot, FileText, Github } from "lucide-react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -308,8 +308,8 @@ const TokenTable: React.FC<
       />
       <Card className="flex min-h-[700px] w-full flex-col">
         <CardHeader>
-          <CardTitle className="flex justify-between">
-            <span>Referral Token Accounts</span>
+          <CardTitle className="mb-3 flex justify-between">
+            <span>Swap + Trigger Referral Token Accounts</span>
             <Link
               href={`/dashboard/${referralPubkey.toString()}/create-token-accounts`}
             >
@@ -317,17 +317,25 @@ const TokenTable: React.FC<
             </Link>
           </CardTitle>
           <CardDescription>
-            Token accounts must be created to collect fees in their
-            corresponding tokens. Only tokens in the Jupiter strict list are
-            displayed, to harvest unknown tokens use the SDK (
-            <a
-              href="https://github.com/TeamRaccoons/referral/tree/main/example"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              https://github.com/TeamRaccoons/referral/tree/main/example
-            </a>
-            )
+            <p className="mb-2">
+              Token accounts must be created to collect fees in their
+              corresponding tokens. Only tokens in the Jupiter strict list are
+              displayed.
+            </p>
+            <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2 text-xs dark:border-gray-700 dark:bg-gray-800/30">
+              <Github size={14} />
+              <span>
+                To harvest unknown tokens use the{" "}
+                <a
+                  href="https://github.com/TeamRaccoons/referral/tree/main/example"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  SDK Example
+                </a>
+              </span>
+            </div>
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 rounded-b-lg py-4 dark:bg-[#101828]">
@@ -431,6 +439,29 @@ const DashboardHeader: React.FC<{
                   <Dot /> Fee to Jupiter
                 </span>
                 <span>{projectFeePct}%</span>
+              </div>
+            </div>
+            <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/30">
+              <h3 className="mb-3 text-sm font-semibold tracking-tight">
+                How to use Referral Account in Swap + Trigger APIs?
+              </h3>
+              <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+                <Link
+                  href="https://dev.jup.ag/docs/swap-api/add-fees-to-swap"
+                  target="_blank"
+                  className="text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2.5 shadow-sm transition-all hover:text-white dark:bg-gray-700"
+                >
+                  <FileText size={16} className="flex-shrink-0" />
+                  <span className="font-medium">Documentation</span>
+                </Link>
+                <Link
+                  href="https://github.com/Jupiter-DevRel/typescript-examples/tree/main/swap/quote-build-send-with-referral-accounts"
+                  target="_blank"
+                  className="text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2.5 shadow-sm transition-all hover:text-white dark:bg-gray-700"
+                >
+                  <Github size={16} className="flex-shrink-0" />
+                  <span className="font-medium">TypeScript Example</span>
+                </Link>
               </div>
             </div>
           </CardContent>
