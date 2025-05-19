@@ -325,7 +325,7 @@ const TokenTable: React.FC<
             <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2 text-xs dark:border-gray-700 dark:bg-gray-800/30">
               <Github size={14} />
               <span>
-                To harvest unknown tokens use the{" "}
+                To claim unknown tokens use the{" "}
                 <a
                   href="https://github.com/TeamRaccoons/referral/tree/main/example"
                   target="_blank"
@@ -466,32 +466,37 @@ const DashboardHeader: React.FC<{
             </div>
           </CardContent>
           <CardContent className="p-8">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-[#98A2B3]">
-                Unclaimed Fee
-              </p>
-              {isTotalUnclaimedLoading ? (
-                <Skeleton className="h-8 w-8" />
-              ) : (
-                <div className="text-3xl font-bold">
-                  ${totalUnclaimed.toFixed(2)}
+            <div className="space-y-6">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-[#98A2B3]">
+                    Unclaimed Fee
+                  </p>
+                  {isTotalUnclaimedLoading ? (
+                    <Skeleton className="h-10 w-32" />
+                  ) : (
+                    <div className="text-4xl font-bold tracking-tight">
+                      ${totalUnclaimed.toFixed(2)}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="mt-4 flex justify-end">
-              <Button
-                onClick={claimTokens}
-                disabled={withdrawalableTokenAddress.length === 0}
-                loading={isClaiming}
-              >
-                Claim
-              </Button>
-            </div>
 
-            <div className="mt-2 flex justify-end text-right text-xs">
-              <div className="max-w-[300px]">
-                Only stricts tokens with value more than $1 with be claimed.
-                Please use the SDK to claim other tokens.
+                <Button
+                  onClick={claimTokens}
+                  disabled={withdrawalableTokenAddress.length === 0}
+                  loading={isClaiming}
+                  className="mt-6"
+                >
+                  Claim
+                </Button>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs dark:border-gray-700 dark:bg-gray-800/30">
+                <p className="text-gray-600 dark:text-gray-400">
+                  Only stricts tokens with value more than $1 are claimable.
+                  Please use the SDK to claim tokens with value less than $1 or
+                  non-strict tokens.
+                </p>
               </div>
             </div>
           </CardContent>
