@@ -456,7 +456,7 @@ const DashboardHeader: React.FC<{
                 <Link
                   href="https://dev.jup.ag/docs/ultra-api/add-fees-to-ultra"
                   target="_blank"
-                  className="text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2 shadow-sm transition-all hover:text-white dark:bg-gray-700 dark:hover:text-black"
+                  className="dark:text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2 text-black shadow-sm transition-all hover:text-white dark:bg-gray-700 dark:hover:text-black"
                 >
                   <FileText size={16} />
                   Documentation
@@ -464,7 +464,7 @@ const DashboardHeader: React.FC<{
                 <Link
                   href="https://github.com/Jupiter-DevRel/typescript-examples/tree/main/ultra/order-execute-with-referral-accounts"
                   target="_blank"
-                  className="text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2 shadow-sm transition-all hover:text-white dark:bg-gray-700 dark:hover:text-black"
+                  className="dark:text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2 text-black shadow-sm transition-all hover:text-white dark:bg-gray-700 dark:hover:text-black"
                 >
                   <Github size={16} />
                   TypeScript Example

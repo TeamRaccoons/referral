@@ -449,7 +449,7 @@ const DashboardHeader: React.FC<{
                 <Link
                   href="https://dev.jup.ag/docs/swap-api/add-fees-to-swap"
                   target="_blank"
-                  className="text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2.5 shadow-sm transition-all hover:text-white dark:bg-gray-700"
+                  className="dark:text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2.5 text-black shadow-sm transition-all hover:text-white dark:bg-gray-700"
                 >
                   <FileText size={16} className="flex-shrink-0" />
                   <span className="font-medium">Documentation</span>
@@ -457,7 +457,7 @@ const DashboardHeader: React.FC<{
                 <Link
                   href="https://github.com/Jupiter-DevRel/typescript-examples/tree/main/swap/quote-build-send-with-referral-accounts"
                   target="_blank"
-                  className="text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2.5 shadow-sm transition-all hover:text-white dark:bg-gray-700"
+                  className="dark:text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2.5 text-black shadow-sm transition-all hover:text-white dark:bg-gray-700"
                 >
                   <Github size={16} className="flex-shrink-0" />
                   <span className="font-medium">TypeScript Example</span>
