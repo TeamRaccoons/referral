@@ -34,14 +34,14 @@ export const metadata = {
     icon: "/favicon.ico",
   },
   openGraph: {
-    images: [{ url: "/opengraph-image.png" }],
+    images: [{ url: "/referral-banner.png" }],
   },
   twitter: {
     card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
-    images: [{ url: "https://acme-corp-lib.vercel.app/opengraph-image.png" }],
-    creator: "@jullerino",
+    images: [{ url: "/referral-banner.png" }],
+    creator: "@jupiter_devrel",
   },
   metadataBase: new URL("https://acme-corp.jumr.dev"),
 };
