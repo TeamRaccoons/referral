@@ -47,9 +47,10 @@ export const WalletButton: React.FunctionComponent<IWalletButtonProps> = (
         backgroundColor: "#2E90FA",
         padding: "10px 18px",
         borderRadius: "8px",
+        fontSize: "0.875rem",
       }}
     >
-      Connect
+      Connect Wallet
     </WalletModalButton>
   );
 };

@@ -12,9 +12,11 @@ const PageTitle: React.FunctionComponent<IPageTitleProps> = ({
 }) => {
   return (
     <>
-      <h1 className="text-3xl font-semibold dark:text-[#F2F4F7]">{title}</h1>
+      <h1 className="mb-2 text-3xl font-semibold dark:text-[#F2F4F7]">
+        {title}
+      </h1>
       <div className="dark:text-[#98A2B3]">
-        Referral Key :{" "}
+        Referral Account:{" "}
         <span className="inline-block rounded-full bg-[#1D2939] px-3 py-1 text-sm text-[#98A2B3]">
           <div className="flex items-center justify-center gap-1">
             <span>{referralPubkey}</span>
