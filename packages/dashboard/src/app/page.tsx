@@ -32,7 +32,9 @@ export default function Home() {
             The Jupiter Referral Program enables developers to earn fees when
             integrating the Jupiter APIs.
           </Balancer>
-          <Balancer> (Anyone can also use this for their own Program)</Balancer>
+          <Balancer>
+            (Anyone can also use the Referral Program for their own Solana program)
+          </Balancer>
         </p>
         <div
           className="animate-fade-up mx-auto mt-6 flex items-center justify-center space-x-5 opacity-0"
