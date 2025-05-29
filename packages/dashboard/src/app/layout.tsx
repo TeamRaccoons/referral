@@ -62,7 +62,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
               <div className="flex min-h-screen flex-col">
                 <nav className="bg-background/95 container sticky top-0 z-50 flex h-16 items-center border-b border-gray-200 shadow-sm backdrop-blur-sm dark:border-gray-800">
                   <Link
-                    className="flex items-center gap-2.5 transition-all duration-200 hover:opacity-80"
+                    className="hidden items-center gap-2.5 transition-all duration-200 hover:opacity-80 md:flex"
                     href="/"
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-full">
@@ -72,7 +72,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
                       {siteConfig.name}
                     </span>
                   </Link>
-                  <div className="mx-4 h-5 w-px bg-gray-200 dark:bg-gray-700"></div>
+                  <div className="mx-4 hidden h-5 w-px bg-gray-200 dark:bg-gray-700 md:block"></div>
                   <MainNav />
                   <div className="ml-auto flex items-center">
                     <WalletButton />
