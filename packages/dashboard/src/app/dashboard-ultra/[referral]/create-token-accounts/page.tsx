@@ -36,14 +36,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { WalletButton } from "@/components/wallet-button";
 import { useConnection, useWallet } from "@/components/wallet-provider";
-import TokenList from "@/app/dashboard/[referral]/create-token-accounts/token-list";
-import { useReferralTokens } from "@/hooks/useReferralTokens";
+import TokenList from "@/app/dashboard-ultra/[referral]/create-token-accounts/token-list";
 import useSearchArrowNavigation, {
   useReactiveEventListener,
 } from "@/hooks/useSearchArrowNavigation";
 import { useSendTransaction } from "@/hooks/useSendTransaction";
 import { TokenInfo, TokenInfoMap, useTokenInfos } from "@/hooks/useTokenInfo";
-import { createReferralTokenAccounts } from "@/lib/referral";
+import { useUltraReferralTokens } from "@/hooks/useUltraReferralTokens";
+import { createUltraReferralTokenAccounts } from "@/lib/referral";
 import {
   NormalizedTokenInfo,
   normalizeTokenInfo,
@@ -76,7 +76,10 @@ const CreateTokenAccounts: React.FunctionComponent<
   const referralProvider = React.useMemo(() => {
     return new ReferralProvider(connection);
   }, [connection]);
-  const referralTokens = useReferralTokens(referralProvider, referralPubkey);
+  const referralTokens = useUltraReferralTokens(
+    referralProvider,
+    referralPubkey,
+  );
 
   const tokenInfos = useTokenInfos();
   const { toast } = useToast();
@@ -157,7 +160,7 @@ const CreateTokenAccounts: React.FunctionComponent<
     );
 
     if (publicKey && mintsToCreate.length > 0) {
-      const tx = await createReferralTokenAccounts({
+      const tx = await createUltraReferralTokenAccounts({
         referralProvider,
         referralPubkey,
         tokenMints: mintsToCreate.map((mint) => new PublicKey(mint)),
@@ -168,7 +171,7 @@ const CreateTokenAccounts: React.FunctionComponent<
 
       // first time create, redirect to dashboard
       if (tableData.length === 0) {
-        push("/dashboard");
+        push("/dashboard-ultra");
       }
     }
 
@@ -208,10 +211,10 @@ const CreateTokenAccounts: React.FunctionComponent<
             )}
             <Card className="m-auto flex h-full w-full flex-col">
               <CardHeader className=" py-5">
-                <CardTitle>Referral Token Accounts</CardTitle>
+                <CardTitle>Ultra Referral Token Accounts</CardTitle>
                 <CardDescription>
                   Select new token accounts that you would like to earn fees
-                  when using Swap + Trigger APIs.
+                  when using Ultra API.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-1 pb-6 pt-4 dark:bg-[#101828]">

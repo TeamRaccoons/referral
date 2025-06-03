@@ -1,11 +1,11 @@
 import { Inter } from "next/font/google";
 import LocalFont from "next/font/local";
+import Image from "next/image";
 import Link from "next/link";
 
 import { SiteFooter } from "@/components/footer";
 import { MainNav } from "@/components/nav";
 import { ThemeProvider } from "@/components/theme-provider";
-import * as Icons from "@/components/ui/icons";
 import { Toaster } from "@/components/ui/toaster";
 import { WalletButton } from "@/components/wallet-button";
 import WalletProvider from "@/components/wallet-provider";
@@ -34,14 +34,14 @@ export const metadata = {
     icon: "/favicon.ico",
   },
   openGraph: {
-    images: [{ url: "/opengraph-image.png" }],
+    images: [{ url: "/referral-banner-2.png" }],
   },
   twitter: {
     card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
-    images: [{ url: "https://acme-corp-lib.vercel.app/opengraph-image.png" }],
-    creator: "@jullerino",
+    images: [{ url: "/referral-banner-2.png" }],
+    creator: "@jupiter_devrel",
   },
   metadataBase: new URL("https://acme-corp.jumr.dev"),
 };
@@ -60,17 +60,21 @@ export default function RootLayout(props: { children: React.ReactNode }) {
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <WalletProvider>
               <div className="flex min-h-screen flex-col">
-                <nav className="bg-background container z-50 flex h-16 items-center border-b">
-                  <Link className="mr-8 flex items-center" href="/">
-                    <Icons.Logo className="mr-2 h-6 w-6" />
+                <nav className="bg-background/95 container sticky top-0 z-50 flex h-16 items-center border-b border-gray-200 shadow-sm backdrop-blur-sm dark:border-gray-800">
+                  <Link
+                    className="hidden items-center gap-2.5 transition-all duration-200 hover:opacity-80 md:flex"
+                    href="/"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full">
+                      <Image src="/jup.png" alt="logo" width={24} height={24} />
+                    </div>
                     <span className="text-lg font-bold tracking-tight">
                       {siteConfig.name}
                     </span>
                   </Link>
-                  <nav></nav>
-                  {/* <MobileDropdown /> */}
+                  <div className="mx-4 hidden h-5 w-px bg-gray-200 dark:bg-gray-700 md:block"></div>
                   <MainNav />
-                  <div className="ml-auto flex items-center space-x-4">
+                  <div className="ml-auto flex items-center">
                     <WalletButton />
                   </div>
                 </nav>

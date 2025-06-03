@@ -13,10 +13,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import PageTitle from "@/components/page-title";
-import {
-  TokenDataTable,
-  TokenDataTableRowData,
-} from "@/components/token-data-table";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -37,18 +33,22 @@ import {
 import { Wallet } from "@/components/ui/icons";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  TokenDataTable,
+  TokenDataTableRowData,
+} from "@/components/ultra-token-data-table";
 import { WalletButton } from "@/components/wallet-button";
 import { useConnection, useWallet } from "@/components/wallet-provider";
-import { useReferralTokens } from "@/hooks/useReferralTokens";
 import { useSendAllTransactions } from "@/hooks/useSendAllTransactions";
 import { useSendTransaction } from "@/hooks/useSendTransaction";
 import { useTokenInfos } from "@/hooks/useTokenInfo";
 import { useGetTokenPrices } from "@/hooks/useTokenPrice";
 import { useTopTokens } from "@/hooks/useTopTokens";
 import { useTotalUnclaimed } from "@/hooks/useTotalUnclaimed";
-import { JUPITER_PROJECT } from "@/lib/constants";
-import { getReferralAccounts } from "@/lib/referral";
-import { cn, nonNullable } from "@/lib/utils";
+import { useUltraReferralTokens } from "@/hooks/useUltraReferralTokens";
+import { JUPITER_PROJECT_ULTRA } from "@/lib/constants";
+import { getUltraReferralAccounts } from "@/lib/referral";
+import { nonNullable } from "@/lib/utils";
 
 interface IDashboardProps {
   params: { referral: string };
@@ -81,7 +81,7 @@ const Dashboard: React.FunctionComponent<IDashboardProps> = ({
               ),
             },
           ]
-        : getReferralAccounts(referralProvider, publicKey!);
+        : getUltraReferralAccounts(referralProvider, publicKey!);
     },
     enabled: Boolean(publicKey),
   });
@@ -91,9 +91,12 @@ const Dashboard: React.FunctionComponent<IDashboardProps> = ({
       <div className="m-auto flex max-w-[350px] flex-col items-center text-center">
         <Wallet className="fill-black text-black" />
         <div className="py-6">
-          <h2 className="text-2xl font-semibold">Referral Token Accounts</h2>
+          <h2 className="text-2xl font-semibold">
+            Ultra Referral Token Accounts
+          </h2>
           <p className="text-sm/5 font-medium dark:text-[#667085]">
-            Connect your wallet to interact with your referral token accounts.
+            Connect your wallet to interact with your ultra referral token
+            accounts.
           </p>
         </div>
         <WalletButton />
@@ -163,7 +166,7 @@ const CreateForm: React.FC<Props & { onSuccess: () => void }> = ({
       name: values.projectName,
       partnerPubKey: wallet.adapter.publicKey,
       payerPubKey: wallet.adapter.publicKey,
-      projectPubKey: JUPITER_PROJECT,
+      projectPubKey: JUPITER_PROJECT_ULTRA,
     });
     try {
       const txid = await sendTransaction(tx);
@@ -181,7 +184,7 @@ const CreateForm: React.FC<Props & { onSuccess: () => void }> = ({
       >
         <Card className="w-full">
           <CardHeader>
-            <CardTitle>Create Referral Account</CardTitle>
+            <CardTitle>Create Ultra Referral Account</CardTitle>
             <CardDescription>Use your project name</CardDescription>
           </CardHeader>
           <CardContent>
@@ -224,7 +227,10 @@ const TokenTable: React.FC<
 
   const topTokens = useTopTokens();
 
-  const referralTokens = useReferralTokens(referralProvider, referralPubkey);
+  const referralTokens = useUltraReferralTokens(
+    referralProvider,
+    referralPubkey,
+  );
 
   const hasTokens =
     referralTokens.data?.token2022Accounts.length ||
@@ -286,7 +292,7 @@ const TokenTable: React.FC<
   }, [data]);
 
   React.useMemo(() => {
-    const url = `/dashboard/${referralPubkey.toString()}/create-token-accounts`;
+    const url = `/dashboard-ultra/${referralPubkey.toString()}/create-token-accounts`;
     if (!hasTokens && !referralTokens.isLoading) {
       router.push(url);
     } else {
@@ -309,9 +315,9 @@ const TokenTable: React.FC<
       <Card className="flex min-h-[700px] w-full flex-col">
         <CardHeader>
           <CardTitle className="mb-3 flex justify-between">
-            <span>Swap + Trigger Referral Token Accounts</span>
+            <span>Ultra Referral Token Accounts</span>
             <Link
-              href={`/dashboard/${referralPubkey.toString()}/create-token-accounts`}
+              href={`/dashboard-ultra/${referralPubkey.toString()}/create-token-accounts`}
             >
               <Button>Create Token Accounts</Button>
             </Link>
@@ -327,7 +333,7 @@ const TokenTable: React.FC<
               <span>
                 To claim unknown tokens use the{" "}
                 <a
-                  href="https://github.com/TeamRaccoons/referral/tree/main/example"
+                  href="https://github.com/Jupiter-DevRel/typescript-examples/tree/main/ultra/order-execute-with-referral-accounts/src/scripts"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline"
@@ -366,7 +372,10 @@ const DashboardHeader: React.FC<{
   const queryClient = useQueryClient();
   const sendAllTransactions = useSendAllTransactions();
 
-  const referralTokens = useReferralTokens(referralProvider, referralPubkey);
+  const referralTokens = useUltraReferralTokens(
+    referralProvider,
+    referralPubkey,
+  );
 
   const tokensWithAmount = React.useMemo(() => {
     return [
@@ -394,10 +403,9 @@ const DashboardHeader: React.FC<{
     try {
       setIsClaiming(true);
 
-      const txsCompiled = await referralProvider.claimPartially({
+      const txsCompiled = await referralProvider.claimAllV2({
         payerPubKey: wallet.publicKey,
         referralAccountPubKey: referralPubkey,
-        withdrawalableTokenAddress,
       });
       setIsClaiming(false);
 
@@ -409,7 +417,6 @@ const DashboardHeader: React.FC<{
       setIsClaiming(false);
     }
   }, [
-    withdrawalableTokenAddress,
     referralPubkey,
     wallet,
     referralProvider,
@@ -420,7 +427,7 @@ const DashboardHeader: React.FC<{
   return (
     <div className="w-full">
       <PageTitle
-        title="Swap + Trigger Dashboard"
+        title="Ultra Dashboard"
         referralPubkey={referralPubkey.toBase58()}
       />
 
@@ -443,24 +450,24 @@ const DashboardHeader: React.FC<{
             </div>
             <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/30">
               <h3 className="mb-3 text-sm font-semibold tracking-tight">
-                How to use Referral Account in Swap + Trigger APIs?
+                How to use Referral Account in Ultra API?
               </h3>
               <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                 <Link
-                  href="https://dev.jup.ag/docs/swap-api/add-fees-to-swap"
+                  href="https://dev.jup.ag/docs/ultra-api/add-fees-to-ultra"
                   target="_blank"
-                  className="dark:text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2.5 text-black shadow-sm transition-all hover:text-white dark:bg-gray-700"
+                  className="dark:text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2 text-black shadow-sm transition-all hover:text-white dark:bg-gray-700 dark:hover:text-black"
                 >
-                  <FileText size={16} className="flex-shrink-0" />
-                  <span className="font-medium">Documentation</span>
+                  <FileText size={16} />
+                  Documentation
                 </Link>
                 <Link
-                  href="https://github.com/Jupiter-DevRel/typescript-examples/tree/main/swap/quote-build-send-with-referral-accounts"
+                  href="https://github.com/Jupiter-DevRel/typescript-examples/tree/main/ultra/order-execute-with-referral-accounts"
                   target="_blank"
-                  className="dark:text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2.5 text-black shadow-sm transition-all hover:text-white dark:bg-gray-700"
+                  className="dark:text-primary hover:bg-primary dark:hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2 text-black shadow-sm transition-all hover:text-white dark:bg-gray-700 dark:hover:text-black"
                 >
-                  <Github size={16} className="flex-shrink-0" />
-                  <span className="font-medium">TypeScript Example</span>
+                  <Github size={16} />
+                  TypeScript Example
                 </Link>
               </div>
             </div>
