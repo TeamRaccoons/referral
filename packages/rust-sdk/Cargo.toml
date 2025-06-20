@@ -1,0 +1,28 @@
+[package]
+name = "jupiter-referral-sdk"
+version = "0.1.0"
+edition = "2021"
+description = "Simplified Rust SDK for Jupiter Referral Program transaction validation"
+license = "MIT"
+repository = "https://github.com/jup-ag/referral-program"
+
+[features]
+default = []
+mainnet = []
+
+[[example]]
+name = "validate_transaction"
+path = "examples/validate_transaction.rs"
+
+[dependencies]
+anchor-lang = "0.31.0"
+anyhow = "1.0"
+base64 = "0.22"
+bincode = "1.3"
+solana-sdk = "1.18"
+spl-token = "4.0"
+spl-token-2022 = "1.0"
+spl-associated-token-account = "2.3"
+
+[dev-dependencies]
+tokio = { version = "1.0", features = ["full"] }
