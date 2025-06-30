@@ -269,7 +269,7 @@ const TokenTable: React.FC<
         const amount = new Decimal(account.amount.toString()).div(
           10 ** tokenInfo.decimals,
         );
-        const price = new Decimal(pricesHash[mint]?.price || 0);
+        const price = new Decimal(pricesHash[mint]?.usdPrice || 0);
         return {
           tokenName: `${tokenInfo.name} (${tokenInfo.symbol})`,
           mint,
@@ -325,7 +325,7 @@ const TokenTable: React.FC<
           <CardDescription>
             <p className="mb-2">
               Token accounts must be created to collect fees in their
-              corresponding tokens. Only tokens in the Jupiter strict list are
+              corresponding tokens. Only tokens in the Jupiter verified list are
               displayed.
             </p>
             <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2 text-xs dark:border-gray-700 dark:bg-gray-800/30">
@@ -500,9 +500,9 @@ const DashboardHeader: React.FC<{
 
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs dark:border-gray-700 dark:bg-gray-800/30">
                 <p className="text-gray-600 dark:text-gray-400">
-                  Only stricts tokens with value more than $1 are claimable.
+                  Only verified tokens with value more than $1 are claimable.
                   Please use the SDK to claim tokens with value less than $1 or
-                  non-strict tokens.
+                  non-verified tokens.
                 </p>
               </div>
             </div>

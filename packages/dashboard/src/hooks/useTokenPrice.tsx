@@ -4,16 +4,12 @@ import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { chunks } from "@/lib/utils";
 
 export interface PriceAPIResult {
-  data: Record<
-    string,
-    {
-      id: string;
-      mintSymbol: string;
-      vsToken: string;
-      vsTokenSymbol: string;
-      price: number;
-    }
-  >;
+  [tokenAddress: string]: {
+    blockId: number;
+    decimals: number;
+    usdPrice: number;
+    priceChange24h: number;
+  };
 }
 export const TOKEN_PRICES_KEY = "token-prices";
 export const useFetchTokenPrices = (tokenMints: string[]) => {
@@ -23,10 +19,10 @@ export const useFetchTokenPrices = (tokenMints: string[]) => {
         queryKey: [TOKEN_PRICES_KEY, ...tokens],
         queryFn: async () => {
           const response = await fetch(
-            `https://api.jup.ag/price/v2?ids=${tokens.join(",")}`,
+            `https://lite-api.jup.ag/price/v3?ids=${tokens.join(",")}`,
           );
           const data: PriceAPIResult = await response.json();
-          return data.data;
+          return data;
         },
       };
     }),
@@ -64,9 +60,9 @@ export const useGetTokenPrice = (mint: string) => {
         exact: false,
         queryKey: [mint],
       },
-    ) as PriceAPIResult["data"] | undefined;
+    ) as PriceAPIResult | undefined;
 
-    return prices?.[mint]?.price;
+    return prices?.[mint]?.usdPrice;
   }, [queryClient, mint, _]);
 
   return price;
@@ -107,9 +103,9 @@ export const useGetTokenPrices = (mints: string[]) => {
           exact: false,
           queryKey: [mint],
         },
-      ) as PriceAPIResult["data"] | undefined;
+      ) as PriceAPIResult | undefined;
       return { ...acc, ...(prices || {}) };
-    }, {} as PriceAPIResult["data"]);
+    }, {} as PriceAPIResult);
   }, [queryClient, mints]);
 
   return pricesHash;
