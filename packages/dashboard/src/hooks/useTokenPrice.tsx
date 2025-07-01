@@ -54,16 +54,19 @@ export const useGetTokenPrice = (mint: string) => {
   }, [queryClient, mint]);
 
   const price = useMemo(() => {
-    const prices = queryClient.getQueryData<PriceAPIResult>(
-      [TOKEN_PRICES_KEY],
-      {
-        exact: false,
-        queryKey: [mint],
-      },
-    ) as PriceAPIResult | undefined;
+    const queriesData = queryClient.getQueriesData<PriceAPIResult>({
+      queryKey: [TOKEN_PRICES_KEY],
+      exact: false,
+    });
 
-    return prices?.[mint]?.usdPrice;
-  }, [queryClient, mint, _]);
+    for (const [queryKey, data] of queriesData) {
+      if (data && queryKey.includes(mint)) {
+        return data[mint]?.usdPrice;
+      }
+    }
+
+    return undefined;
+  }, [queryClient, mint]);
 
   return price;
 };
@@ -96,16 +99,23 @@ export const useGetTokenPrices = (mints: string[]) => {
   }, [queryClient, mints]);
 
   const pricesHash = useMemo(() => {
-    return mints.reduce((acc, mint) => {
-      const prices = queryClient.getQueryData<PriceAPIResult>(
-        [TOKEN_PRICES_KEY],
-        {
-          exact: false,
-          queryKey: [mint],
-        },
-      ) as PriceAPIResult | undefined;
-      return { ...acc, ...(prices || {}) };
-    }, {} as PriceAPIResult);
+    const queriesData = queryClient.getQueriesData<PriceAPIResult>({
+      queryKey: [TOKEN_PRICES_KEY],
+      exact: false,
+    });
+
+    const result: PriceAPIResult = {};
+
+    for (const mint of mints) {
+      for (const [queryKey, data] of queriesData) {
+        if (data && queryKey.includes(mint) && data[mint]) {
+          result[mint] = data[mint];
+          break;
+        }
+      }
+    }
+
+    return result;
   }, [queryClient, mints]);
 
   return pricesHash;
