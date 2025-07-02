@@ -4,16 +4,12 @@ import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { chunks } from "@/lib/utils";
 
 export interface PriceAPIResult {
-  data: Record<
-    string,
-    {
-      id: string;
-      mintSymbol: string;
-      vsToken: string;
-      vsTokenSymbol: string;
-      price: number;
-    }
-  >;
+  [tokenAddress: string]: {
+    blockId: number;
+    decimals: number;
+    usdPrice: number;
+    priceChange24h: number;
+  };
 }
 export const TOKEN_PRICES_KEY = "token-prices";
 export const useFetchTokenPrices = (tokenMints: string[]) => {
@@ -23,10 +19,10 @@ export const useFetchTokenPrices = (tokenMints: string[]) => {
         queryKey: [TOKEN_PRICES_KEY, ...tokens],
         queryFn: async () => {
           const response = await fetch(
-            `https://api.jup.ag/price/v2?ids=${tokens.join(",")}`,
+            `https://lite-api.jup.ag/price/v3?ids=${tokens.join(",")}`,
           );
           const data: PriceAPIResult = await response.json();
-          return data.data;
+          return data;
         },
       };
     }),
@@ -58,16 +54,19 @@ export const useGetTokenPrice = (mint: string) => {
   }, [queryClient, mint]);
 
   const price = useMemo(() => {
-    const prices = queryClient.getQueryData<PriceAPIResult>(
-      [TOKEN_PRICES_KEY],
-      {
-        exact: false,
-        queryKey: [mint],
-      },
-    ) as PriceAPIResult["data"] | undefined;
+    const queriesData = queryClient.getQueriesData<PriceAPIResult>({
+      queryKey: [TOKEN_PRICES_KEY],
+      exact: false,
+    });
 
-    return prices?.[mint]?.price;
-  }, [queryClient, mint, _]);
+    for (const [queryKey, data] of queriesData) {
+      if (data && queryKey.includes(mint)) {
+        return data[mint]?.usdPrice;
+      }
+    }
+
+    return undefined;
+  }, [queryClient, mint]);
 
   return price;
 };
@@ -100,16 +99,23 @@ export const useGetTokenPrices = (mints: string[]) => {
   }, [queryClient, mints]);
 
   const pricesHash = useMemo(() => {
-    return mints.reduce((acc, mint) => {
-      const prices = queryClient.getQueryData<PriceAPIResult>(
-        [TOKEN_PRICES_KEY],
-        {
-          exact: false,
-          queryKey: [mint],
-        },
-      ) as PriceAPIResult["data"] | undefined;
-      return { ...acc, ...(prices || {}) };
-    }, {} as PriceAPIResult["data"]);
+    const queriesData = queryClient.getQueriesData<PriceAPIResult>({
+      queryKey: [TOKEN_PRICES_KEY],
+      exact: false,
+    });
+
+    const result: PriceAPIResult = {};
+
+    for (const mint of mints) {
+      for (const [queryKey, data] of queriesData) {
+        if (data && queryKey.includes(mint) && data[mint]) {
+          result[mint] = data[mint];
+          break;
+        }
+      }
+    }
+
+    return result;
   }, [queryClient, mints]);
 
   return pricesHash;

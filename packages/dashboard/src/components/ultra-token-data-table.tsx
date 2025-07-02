@@ -121,7 +121,9 @@ export const TokenDataTable: React.FC<
             const value = info.getValue<Decimal>();
 
             return (
-              <div className="text-right font-medium">${value.toFixed(2)}</div>
+              <div className="text-right font-medium">
+                {value.isZero() ? "-" : `$${value.toFixed(2)}`}
+              </div>
             );
           },
         },
@@ -158,7 +160,9 @@ export const TokenDataTable: React.FC<
             const price = info.getValue<Decimal>();
 
             return (
-              <div className="text-right font-medium">${price.toFixed(2)}</div>
+              <div className="text-right font-medium">
+                {price.isZero() ? "-" : `$${price.toFixed(2)}`}
+              </div>
             );
           },
         },
@@ -193,7 +197,9 @@ export const TokenDataTable: React.FC<
             const amount: Decimal = row.getValue("amount");
 
             return (
-              <div className="text-right font-medium">{amount.toString()}</div>
+              <div className="text-right font-medium">
+                {amount.isZero() ? "-" : amount.toString()}
+              </div>
             );
           },
         },

@@ -20,7 +20,7 @@ export const useTotalUnclaimed = (tokenAccounts: RawAccountWithPubkey[]) => {
           ...acc,
           ...data,
         };
-      }, {} as PriceAPIResult["data"]),
+      }, {} as PriceAPIResult),
     };
   }, [queries]);
 
@@ -34,7 +34,7 @@ export const useTotalUnclaimed = (tokenAccounts: RawAccountWithPubkey[]) => {
         )?.decimals;
         if (typeof decimals === "number") {
           const price =
-            ((pricesData[account.mint.toString()]?.price || 0) *
+            ((pricesData[account.mint.toString()]?.usdPrice || 0) *
               Number(account.amount)) /
             10 ** decimals;
 
