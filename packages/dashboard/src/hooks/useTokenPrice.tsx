@@ -14,7 +14,7 @@ export interface PriceAPIResult {
 export const TOKEN_PRICES_KEY = "token-prices";
 export const useFetchTokenPrices = (tokenMints: string[]) => {
   return useQueries({
-    queries: chunks(tokenMints, 100).map((tokens) => {
+    queries: chunks(tokenMints, 50).map((tokens) => {
       return {
         queryKey: [TOKEN_PRICES_KEY, ...tokens],
         queryFn: async () => {
