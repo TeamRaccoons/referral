@@ -7,7 +7,7 @@ export const useTopTokens = () =>
     queryKey: ["top-tokens"],
     queryFn: async () => {
       const topTokens: string[] = await (
-        await fetch("https://cache.jup.ag/top-tokens")
+        await fetch("https://lite-api.jup.ag/tokens/v2/toptraded/24h")
       ).json();
 
       const top10Tokens = topTokens.slice(0, 10);

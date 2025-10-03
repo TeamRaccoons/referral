@@ -287,16 +287,23 @@ export class ReferralProvider {
       if (strategy.type === "top-tokens") {
         const topTokens = (
           (await (
-            await fetch("https://cache.jup.ag/top-tokens")
+            await fetch("https://lite-api.jup.ag/tokens/v2/toptraded/24h")
           ).json()) as string[]
         ).slice(0, strategy.topN);
         return topTokens;
       } else if (strategy.type === "token-list") {
-        const tokens = (
-          await (
-            await fetch("https://tokens.jup.ag/tokens?tags=verified,lst")
-          ).json()
-        ).map(({ address }) => address) as string[];
+        // Fetch verified tokens and LST tokens separately, then combine without duplicates
+        const [verifiedTokens, lstTokens] = await Promise.all([
+          fetch("https://lite-api.jup.ag/tokens/v2/tag?query=verified").then(res => res.json()),
+          fetch("https://lite-api.jup.ag/tokens/v2/tag?query=lst").then(res => res.json())
+        ]);
+        
+        // Combine verified and LST tokens, then deduplicate
+        const tokens: string[] = Array.from(new Set([
+          ...verifiedTokens.map(({ address }) => address),
+          ...lstTokens.map(({ address }) => address)
+        ]));
+        
         return tokens;
       } else {
         throw new Error("Invalid strategy");
@@ -367,16 +374,23 @@ export class ReferralProvider {
       if (strategy.type === "top-tokens") {
         const topTokens = (
           (await (
-            await fetch("https://cache.jup.ag/top-tokens")
+            await fetch("https://lite-api.jup.ag/tokens/v2/toptraded/24h")
           ).json()) as string[]
         ).slice(0, strategy.topN);
         return topTokens;
       } else if (strategy.type === "token-list") {
-        const tokens = (
-          await (
-            await fetch("https://tokens.jup.ag/tokens?tags=verified,lst")
-          ).json()
-        ).map(({ address }) => address) as string[];
+        // Fetch verified tokens and LST tokens separately, then combine without duplicates
+        const [verifiedTokens, lstTokens] = await Promise.all([
+          fetch("https://lite-api.jup.ag/tokens/v2/tag?query=verified").then(res => res.json()),
+          fetch("https://lite-api.jup.ag/tokens/v2/tag?query=lst").then(res => res.json())
+        ]);
+        
+        // Combine verified and LST tokens, then deduplicate
+        const tokens: string[] = Array.from(new Set([
+          ...verifiedTokens.map(({ address }) => address),
+          ...lstTokens.map(({ address }) => address)
+        ]));
+        
         return tokens;
       } else {
         throw new Error("Invalid strategy");
