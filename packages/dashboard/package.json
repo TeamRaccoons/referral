@@ -30,7 +30,7 @@
     "@solana/web3.js": "^1.98.0",
     "@tanstack/react-query": "^4.32.6",
     "@tanstack/react-table": "^8.9.3",
-    "@types/node": "20.4.2",
+    "@types/node": "^22.0.0",
     "@types/react": "18.2.15",
     "@types/react-dom": "18.2.7",
     "@types/react-window": "^1.8.5",
