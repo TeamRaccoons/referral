@@ -298,12 +298,11 @@ export class ReferralProvider {
           fetch("https://lite-api.jup.ag/tokens/v2/tag?query=lst").then(res => res.json())
         ]);
         
-        // Create sets for efficient union lookup
-        const verifiedAddresses = new Set(verifiedTokens.map(({ address }) => address));
-        const lstAddresses = new Set(lstTokens.map(({ address }) => address));
-        
-        // Combine both sets to get tokens that are verified OR LST (union)
-        const tokens = Array.from(new Set([...verifiedAddresses, ...lstAddresses]));
+        // Combine verified and LST tokens, then deduplicate
+        const tokens: string[] = Array.from(new Set([
+          ...verifiedTokens.map(({ address }) => address),
+          ...lstTokens.map(({ address }) => address)
+        ]));
         
         return tokens;
       } else {
@@ -386,12 +385,11 @@ export class ReferralProvider {
           fetch("https://lite-api.jup.ag/tokens/v2/tag?query=lst").then(res => res.json())
         ]);
         
-        // Create sets for efficient union lookup
-        const verifiedAddresses = new Set(verifiedTokens.map(({ address }) => address));
-        const lstAddresses = new Set(lstTokens.map(({ address }) => address));
-        
-        // Combine both sets to get tokens that are verified OR LST (union)
-        const tokens = Array.from(new Set([...verifiedAddresses, ...lstAddresses]));
+        // Combine verified and LST tokens, then deduplicate
+        const tokens: string[] = Array.from(new Set([
+          ...verifiedTokens.map(({ address }) => address),
+          ...lstTokens.map(({ address }) => address)
+        ]));
         
         return tokens;
       } else {
