@@ -294,16 +294,22 @@ export class ReferralProvider {
       } else if (strategy.type === "token-list") {
         // Fetch verified tokens and LST tokens separately, then combine without duplicates
         const [verifiedTokens, lstTokens] = await Promise.all([
-          fetch("https://lite-api.jup.ag/tokens/v2/tag?query=verified").then(res => res.json()),
-          fetch("https://lite-api.jup.ag/tokens/v2/tag?query=lst").then(res => res.json())
+          fetch("https://lite-api.jup.ag/tokens/v2/tag?query=verified").then(
+            (res) => res.json(),
+          ),
+          fetch("https://lite-api.jup.ag/tokens/v2/tag?query=lst").then((res) =>
+            res.json(),
+          ),
         ]);
-        
+
         // Combine verified and LST tokens, then deduplicate
-        const tokens: string[] = Array.from(new Set([
-          ...verifiedTokens.map(({ address }) => address),
-          ...lstTokens.map(({ address }) => address)
-        ]));
-        
+        const tokens: string[] = Array.from(
+          new Set([
+            ...verifiedTokens.map(({ id }) => id),
+            ...lstTokens.map(({ id }) => id),
+          ]),
+        );
+
         return tokens;
       } else {
         throw new Error("Invalid strategy");
@@ -381,16 +387,22 @@ export class ReferralProvider {
       } else if (strategy.type === "token-list") {
         // Fetch verified tokens and LST tokens separately, then combine without duplicates
         const [verifiedTokens, lstTokens] = await Promise.all([
-          fetch("https://lite-api.jup.ag/tokens/v2/tag?query=verified").then(res => res.json()),
-          fetch("https://lite-api.jup.ag/tokens/v2/tag?query=lst").then(res => res.json())
+          fetch("https://lite-api.jup.ag/tokens/v2/tag?query=verified").then(
+            (res) => res.json(),
+          ),
+          fetch("https://lite-api.jup.ag/tokens/v2/tag?query=lst").then((res) =>
+            res.json(),
+          ),
         ]);
-        
+
         // Combine verified and LST tokens, then deduplicate
-        const tokens: string[] = Array.from(new Set([
-          ...verifiedTokens.map(({ address }) => address),
-          ...lstTokens.map(({ address }) => address)
-        ]));
-        
+        const tokens: string[] = Array.from(
+          new Set([
+            ...verifiedTokens.map(({ id }) => id),
+            ...lstTokens.map(({ id }) => id),
+          ]),
+        );
+
         return tokens;
       } else {
         throw new Error("Invalid strategy");
