@@ -18,7 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "@coral-xyz/anchor": "0.28.0",
-    "@jup-ag/referral-sdk": "0.1.7",
+    "@jup-ag/referral-sdk": "workspace:*",
     "@solana/spl-token": "0.3.8",
     "@solana/web3.js": "^1.77.3",
     "dotenv": "^16.3.1"
