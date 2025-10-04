@@ -11,7 +11,7 @@
   "dependencies": {
     "@coral-xyz/anchor": "0.28.1-beta.2",
     "@hookform/resolvers": "^3.2.0",
-    "@jup-ag/referral-sdk": "workspace:*",
+    "@jup-ag/referral-sdk": "^0.3.0",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-dropdown-menu": "^2.0.5",
