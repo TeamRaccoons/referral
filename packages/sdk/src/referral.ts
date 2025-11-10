@@ -717,7 +717,7 @@ export class ReferralProvider {
         instructions: transaction.instructions,
         payer: payerPubKey,
         lookupTables: [lookupTableAccount],
-      });
+      }, this.connection);
     instructions.unshift(
       ComputeBudgetProgram.setComputeUnitPrice({ microLamports }),
     );
@@ -879,9 +879,9 @@ export class ReferralProvider {
 
     const { tokenAccounts, token2022Accounts } = strategy
       ? await this.getReferralTokenAccountsWithStrategy(
-          referralAccountPubKey.toString(),
-          strategy,
-        )
+        referralAccountPubKey.toString(),
+        strategy,
+      )
       : await this.getReferralTokenAccounts(referralAccountPubKey.toString());
 
     const vtTxs = await Promise.all(
@@ -985,7 +985,7 @@ export class ReferralProvider {
                 instructions,
                 payer: payerPubKey,
                 lookupTables: [lookupTableAccount],
-              });
+              }, this.connection);
             instructions.unshift(
               ComputeBudgetProgram.setComputeUnitPrice({ microLamports }),
             );
@@ -1302,7 +1302,7 @@ export class ReferralProvider {
             instructions,
             payer: payerPubKey,
             lookupTables: [lookupTableAccount],
-          });
+          }, this.connection);
         instructions.unshift(
           ComputeBudgetProgram.setComputeUnitPrice({ microLamports }),
         );

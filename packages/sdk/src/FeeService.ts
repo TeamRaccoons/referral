@@ -50,6 +50,7 @@ interface GetOptimalComputeUnitLimitAndPriceResponse {
 interface FeeService {
   getOptimalComputeUnitLimitAndPrice: (
     payload: GetOptimalComputeUnitLimitAndPricePayload,
+    connection?: Connection
   ) => Promise<GetOptimalComputeUnitLimitAndPriceResponse>;
 }
 
@@ -84,6 +85,7 @@ class FeeServiceImpl implements FeeService {
    */
   private getSimulationUnits = async (
     payload: GetOptimalComputeUnitLimitAndPricePayload,
+    connection?: Connection
   ) => {
     const { instructions, payer, lookupTables } = payload;
 
@@ -100,7 +102,7 @@ class FeeServiceImpl implements FeeService {
       }).compileToV0Message(lookupTables),
     );
 
-    const simulation = await this.connection.simulateTransaction(
+    const simulation = await (connection || this.connection).simulateTransaction(
       testVersionedTxn,
       {
         replaceRecentBlockhash: true,
@@ -125,9 +127,9 @@ class FeeServiceImpl implements FeeService {
   // Main methods
   // --------------------
   getOptimalComputeUnitLimitAndPrice: FeeService["getOptimalComputeUnitLimitAndPrice"] =
-    async (payload) => {
+    async (payload, connection?: Connection) => {
       // Unit
-      const simulationUnits = await this.getSimulationUnits(payload);
+      const simulationUnits = await this.getSimulationUnits(payload, connection);
       /**
        * Best practices to always add a margin error to the simulation units (10% ~ 20%)
        * @see https://solana.com/developers/guides/advanced/how-to-request-optimal-compute#special-considerations
