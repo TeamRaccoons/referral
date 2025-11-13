@@ -6,7 +6,10 @@
     "createReferralAccount": "ts-node src/createReferralAccount.ts",
     "createReferralTokenAccount": "ts-node src/createReferralTokenAccount.ts",
     "claimAll": "ts-node src/claimAll.ts",
-    "claimPartially": "ts-node src/claimPartially.ts"
+    "claimPartially": "ts-node src/claimPartially.ts",
+    "createReferralAccountWithName": "ts-node src/createReferralAccountWithName.ts",
+    "createReferralTokenAccountV2": "ts-node src/createReferralTokenAccountV2.ts",
+    "claimAllV2": "ts-node src/claimAllV2.ts"
   },
   "devDependencies": {
     "@types/node": "20.4.2",

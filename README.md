@@ -35,3 +35,11 @@ Then, for each token mint they wish to receive the referral fee from, they must 
 ## Dashboard
 
 You can also check out the web dashboard here if you want to interact with the contract via browser: [https://referral.jup.ag/](https://referral.jup.ag/).
+
+# JD new referral partner
+
+```
+RPC_URL='https://jupiter-backend.rpcpool.com/b70d1b98-a541-4cd8-9c44-de379f3d848d' KEYPAIR=SECRET pnpm run createReferralAccountWithName
+
+
+```
